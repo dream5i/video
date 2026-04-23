@@ -1,0 +1,242 @@
+from __future__ import annotations
+
+import json
+import os
+from pathlib import Path
+import socket
+import subprocess
+import sys
+from tempfile import TemporaryDirectory
+import time
+import unittest
+from urllib import error, request
+
+ROOT_DIR = Path(__file__).resolve().parents[2]
+API_ROOT = ROOT_DIR / "services" / "api"
+
+
+def find_free_port() -> int:
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
+        sock.bind(("127.0.0.1", 0))
+        return int(sock.getsockname()[1])
+
+
+def request_json(method: str, url: str, payload: dict | None = None) -> tuple[int, dict]:
+    encoded_payload = None
+    headers: dict[str, str] = {}
+    if payload is not None:
+        encoded_payload = json.dumps(payload).encode("utf-8")
+        headers["Content-Type"] = "application/json"
+
+    http_request = request.Request(url, data=encoded_payload, headers=headers, method=method)
+    try:
+        with request.urlopen(http_request, timeout=10) as response:
+            body = response.read().decode("utf-8")
+            return response.status, json.loads(body)
+    except error.HTTPError as exc:
+        try:
+            body = exc.read().decode("utf-8")
+            return exc.code, json.loads(body)
+        finally:
+            exc.close()
+
+
+class ApiMainFlowIntegrationTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self.temp_dir = TemporaryDirectory()
+        self.port = find_free_port()
+        self.base_url = f"http://127.0.0.1:{self.port}"
+        self.database_url = f"sqlite+pysqlite:///{Path(self.temp_dir.name) / 'api-flow.db'}"
+
+        env = os.environ.copy()
+        python_path = env.get("PYTHONPATH")
+        env["PYTHONPATH"] = str(API_ROOT) if not python_path else f"{API_ROOT}{os.pathsep}{python_path}"
+        env.pop("NEW_PROJECT_REPOSITORY_BACKEND", None)
+        env["DATABASE_URL"] = self.database_url
+        env["API_HOST"] = "127.0.0.1"
+        env["API_PORT"] = str(self.port)
+
+        self.process = subprocess.Popen(
+            [
+                sys.executable,
+                "-m",
+                "uvicorn",
+                "app.main:app",
+                "--host",
+                "127.0.0.1",
+                "--port",
+                str(self.port),
+            ],
+            cwd=ROOT_DIR,
+            env=env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+        )
+
+        self._wait_until_ready()
+
+    def tearDown(self) -> None:
+        if hasattr(self, "process") and self.process.poll() is None:
+            self.process.terminate()
+            try:
+                self.process.wait(timeout=10)
+            except subprocess.TimeoutExpired:
+                self.process.kill()
+                self.process.wait(timeout=10)
+
+        if hasattr(self, "temp_dir"):
+            self.temp_dir.cleanup()
+
+    def _wait_until_ready(self) -> None:
+        deadline = time.time() + 20
+        last_error: Exception | None = None
+
+        while time.time() < deadline:
+            if self.process.poll() is not None:
+                output = ""
+                if self.process.stdout is not None:
+                    output = self.process.stdout.read()
+                self.fail(f"API server exited before becoming ready.\n{output}")
+
+            try:
+                status, payload = request_json("GET", f"{self.base_url}/api/health")
+                if status == 200 and payload.get("status") == "ok":
+                    return
+            except (OSError, error.URLError, json.JSONDecodeError) as exc:
+                last_error = exc
+
+            time.sleep(0.25)
+
+        self.fail(f"API server did not become ready in time: {last_error}")
+
+    def _create_project(self, title: str, source_url: str) -> tuple[str, dict]:
+        create_status, create_payload = request_json(
+            "POST",
+            f"{self.base_url}/api/projects",
+            payload={
+                "sourceType": "video_url",
+                "sourceUrl": source_url,
+                "title": title,
+                "ratio": "9:16",
+            },
+        )
+        self.assertEqual(create_status, 200)
+        return create_payload["project"]["id"], create_payload
+
+    def test_http_api_supports_mvp_main_flow(self) -> None:
+        project_id, create_payload = self._create_project(
+            title="HTTP 主链测试项目",
+            source_url="https://example.com/douyin/http-flow",
+        )
+        self.assertEqual(create_payload["project"]["currentStage"], "draft")
+
+        project_status, project_payload = request_json("GET", f"{self.base_url}/api/projects/{project_id}")
+        self.assertEqual(project_status, 200)
+        self.assertEqual(project_payload["project"]["id"], project_id)
+
+        analysis_status, analysis_payload = request_json("GET", f"{self.base_url}/api/projects/{project_id}/analysis")
+        self.assertEqual(analysis_status, 200)
+        self.assertEqual(analysis_payload["run"]["status"], "succeeded")
+        self.assertEqual(analysis_payload["sourceSummary"]["sourceType"], "video_url")
+
+        workflow_status, workflow_payload = request_json("GET", f"{self.base_url}/api/projects/{project_id}/workflow")
+        self.assertEqual(workflow_status, 200)
+        self.assertGreater(len(workflow_payload["workflow"]["segments"]), 0)
+
+        workflow_draft_id = workflow_payload["workflow"]["id"]
+        render_status, render_payload = request_json(
+            "POST",
+            f"{self.base_url}/api/projects/{project_id}/renders",
+            payload={
+                "projectId": project_id,
+                "workflowDraftId": workflow_draft_id,
+            },
+        )
+        self.assertEqual(render_status, 200)
+        self.assertEqual(render_payload["run"]["status"], "queued")
+        self.assertGreater(len(render_payload["steps"]), 0)
+
+        run_id = render_payload["run"]["id"]
+        run_status, run_payload = request_json("GET", f"{self.base_url}/api/projects/{project_id}/runs/{run_id}")
+        self.assertEqual(run_status, 200)
+        self.assertEqual(run_payload["run"]["id"], run_id)
+
+        result_status, result_payload = request_json("GET", f"{self.base_url}/api/projects/{project_id}/result")
+        self.assertEqual(result_status, 200)
+        self.assertIsNone(result_payload["asset"])
+
+        history_status, history_payload = request_json("GET", f"{self.base_url}/api/history")
+        self.assertEqual(history_status, 200)
+        self.assertTrue(any(item["runId"] == run_id for item in history_payload["items"]))
+
+    def test_http_api_returns_expected_errors_for_missing_or_mismatched_resources(self) -> None:
+        missing_project_status, missing_project_payload = request_json(
+            "GET",
+            f"{self.base_url}/api/projects/proj_missing",
+        )
+        self.assertEqual(missing_project_status, 404)
+        self.assertEqual(missing_project_payload["detail"], "project not found")
+
+        project_id, _ = self._create_project(
+            title="HTTP 异常测试项目",
+            source_url="https://example.com/douyin/http-error-flow",
+        )
+
+        workflow_status, workflow_payload = request_json("GET", f"{self.base_url}/api/projects/{project_id}/workflow")
+        self.assertEqual(workflow_status, 200)
+
+        render_status, render_payload = request_json(
+            "POST",
+            f"{self.base_url}/api/projects/{project_id}/renders",
+            payload={
+                "projectId": "proj_other",
+                "workflowDraftId": workflow_payload["workflow"]["id"],
+            },
+        )
+        self.assertEqual(render_status, 400)
+        self.assertEqual(render_payload["detail"], "project id mismatch")
+
+    def test_http_api_returns_not_found_for_missing_run_and_missing_result_project(self) -> None:
+        project_id, _ = self._create_project(
+            title="HTTP 丢失资源测试项目",
+            source_url="https://example.com/douyin/http-missing-resources",
+        )
+
+        missing_run_status, missing_run_payload = request_json(
+            "GET",
+            f"{self.base_url}/api/projects/{project_id}/runs/run_missing",
+        )
+        self.assertEqual(missing_run_status, 404)
+        self.assertEqual(missing_run_payload["detail"], "run not found")
+
+        missing_result_status, missing_result_payload = request_json(
+            "GET",
+            f"{self.base_url}/api/projects/proj_missing/result",
+        )
+        self.assertEqual(missing_result_status, 404)
+        self.assertEqual(missing_result_payload["detail"], "project not found")
+
+    def test_http_api_returns_not_found_when_workflow_draft_does_not_belong_to_project(self) -> None:
+        project_a_id, _ = self._create_project(
+            title="HTTP 工作流归属测试项目A",
+            source_url="https://example.com/douyin/http-workflow-project-a",
+        )
+        project_b_id, _ = self._create_project(
+            title="HTTP 工作流归属测试项目B",
+            source_url="https://example.com/douyin/http-workflow-project-b",
+        )
+
+        workflow_status, workflow_payload = request_json("GET", f"{self.base_url}/api/projects/{project_a_id}/workflow")
+        self.assertEqual(workflow_status, 200)
+
+        render_status, render_payload = request_json(
+            "POST",
+            f"{self.base_url}/api/projects/{project_b_id}/renders",
+            payload={
+                "projectId": project_b_id,
+                "workflowDraftId": workflow_payload["workflow"]["id"],
+            },
+        )
+        self.assertEqual(render_status, 404)
+        self.assertEqual(render_payload["detail"], "project or workflow not found")

@@ -42,6 +42,13 @@ Changes here must be owned by the main controller or done serially:
 - High-risk changes require an extra review pass
 - Do not expand scope without updating the governing docs or an ADR
 
+## Communication With Project Owner
+
+- Do not blindly agree for the sake of smooth conversation
+- Answer from a professional, enterprise-grade architecture and delivery perspective
+- Use beginner-friendly language and explain decisions in plain terms
+- When using professional terms, add a simple beginner explanation right after them
+
 ## Default Build Strategy
 
 - Start single-threaded for scaffold, contracts, schema, and provider interfaces

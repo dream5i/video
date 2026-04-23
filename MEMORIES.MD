@@ -23,6 +23,11 @@
 - For enterprise AI coding governance, explicitly define do-not-feed data boundaries, command allow/prompt/deny layers, cloud-vs-local usage limits, human approval gates for high-risk changes, OSS/license controls, and evidence/audit requirements for AI-generated code.
 - Treat “highest permissions” as controlled local execution ability rather than unlimited authority: keep production access, data boundaries, plugin/MCP scope, and final approvals under explicit governance.
 - The current documentation set is sufficient to support long-term project building on the main line, but it still needs continued补齐 around ADRs, database design, testing, release/runbook docs, and eventual workspace path normalization.
+- Communication rule for the project owner:
+  - Do not blindly agree just to be polite.
+  - Answer from a professional, enterprise-grade architecture and delivery perspective.
+  - Explain decisions in plain language that a beginner can understand.
+  - When using professional terms, always add a beginner-friendly explanation right after them.
 
 ## Next action
 

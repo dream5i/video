@@ -68,6 +68,18 @@
 git worktree add .worktrees/feat-web-workspace -b feat/web-workspace main
 ```
 
+如果是第一次真实并行演练，建议优先使用仓库内置脚本：
+
+```bash
+pnpm worktree:drill:create
+```
+
+它会一次性创建：
+
+- API / Data 线
+- Web / Read 线
+- Review pass 线
+
 ### 5.2 为 review pass 单独开只读审查树
 
 ```bash
@@ -84,6 +96,12 @@ git worktree list
 
 ```bash
 git worktree remove .worktrees/feat-web-workspace
+```
+
+如果是清理第一次真实并行演练，建议使用：
+
+```bash
+pnpm worktree:drill:cleanup
 ```
 
 ## 6. 共享锁定区
@@ -126,7 +144,24 @@ review pass 至少检查：
 3. 必要时补独立 review pass
 4. 合并前至少跑一次 `pnpm verify`
 
-## 9. 当前阶段建议
+## 9. checkpoint 规则
+
+第一次真实并行演练前，建议增加一条硬规则：
+
+- 当前工作区必须干净
+- 必须先打一个 checkpoint commit
+
+原因：
+
+- `git worktree` 是从提交点分出新树
+- 不是从当前未提交改动直接复制
+
+小白版解释：
+
+- 没有 checkpoint commit，就像还没存档就想开三个平行世界
+- 三个世界会从旧存档出发，不会自动继承你桌面上还没保存的内容
+
+## 10. 当前阶段建议
 
 项目仍处在骨架到最小运行链路阶段。
 

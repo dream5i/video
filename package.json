@@ -4,11 +4,15 @@
   "packageManager": "pnpm@10.0.0",
   "scripts": {
     "dev:web": "pnpm --filter @new-project/web dev",
-    "dev:api": "cd services/api && python3 -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+    "dev:api": "cd services/api && if [ -x ../../.venv/bin/python ]; then ../../.venv/bin/python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000; else python3 -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000; fi",
     "dev:worker": "cd services/worker && python3 -m worker.main",
     "build:web": "pnpm --filter @new-project/web build",
     "typecheck": "pnpm -r typecheck",
+    "test:api": "if [ -x .venv/bin/python ]; then .venv/bin/python -m unittest discover -s tests/integration -p 'test_*_flow.py'; else python3 -m unittest discover -s tests/integration -p 'test_*_flow.py'; fi",
+    "test:api:migrations": "if [ -x .venv/bin/python ]; then .venv/bin/python -m unittest tests.integration.test_migration_flow; else python3 -m unittest tests.integration.test_migration_flow; fi",
+    "worktree:drill:create": "bash scripts/worktree/create_parallel_drill.sh",
+    "worktree:drill:cleanup": "bash scripts/worktree/cleanup_parallel_drill.sh",
     "verify:python": "python3 -m compileall services/api services/worker",
-    "verify": "pnpm typecheck && pnpm build:web && pnpm verify:python"
+    "verify": "pnpm typecheck && pnpm build:web && pnpm verify:python && pnpm test:api"
   }
 }

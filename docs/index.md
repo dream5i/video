@@ -41,18 +41,20 @@
 10. [build-governance-and-agent-operating-model.md](./build-governance-and-agent-operating-model.md)
 11. [local-development-runbook.md](./local-development-runbook.md)
 12. [worktree-and-branching-runbook.md](./worktree-and-branching-runbook.md)
+13. [parallel-drill-first-wave.md](./parallel-drill-first-wave.md)
+14. [parallel-and-launch-gates.md](./parallel-and-launch-gates.md)
 
 ### Step 4：最后看企业与 AI 编程治理
 
-13. [database-persistence-and-migration-plan.md](./database-persistence-and-migration-plan.md)
-14. [release-checklist.md](./release-checklist.md)
-15. [rollback-runbook.md](./rollback-runbook.md)
-16. [enterprise-ai-readiness-assessment.md](./enterprise-ai-readiness-assessment.md)
-17. [enterprise-ai-coding-rules.md](./enterprise-ai-coding-rules.md)
-18. [enterprise-ai-coding-operating-playbook.md](./enterprise-ai-coding-operating-playbook.md)
-19. [security/ai-coding-policy-matrix.md](./security/ai-coding-policy-matrix.md)
-20. [security/do-not-feed-and-exclusion-list.md](./security/do-not-feed-and-exclusion-list.md)
-21. [review/high-risk-change-checklist.md](./review/high-risk-change-checklist.md)
+15. [database-persistence-and-migration-plan.md](./database-persistence-and-migration-plan.md)
+16. [release-checklist.md](./release-checklist.md)
+17. [rollback-runbook.md](./rollback-runbook.md)
+18. [enterprise-ai-readiness-assessment.md](./enterprise-ai-readiness-assessment.md)
+19. [enterprise-ai-coding-rules.md](./enterprise-ai-coding-rules.md)
+20. [enterprise-ai-coding-operating-playbook.md](./enterprise-ai-coding-operating-playbook.md)
+21. [security/ai-coding-policy-matrix.md](./security/ai-coding-policy-matrix.md)
+22. [security/do-not-feed-and-exclusion-list.md](./security/do-not-feed-and-exclusion-list.md)
+23. [review/high-risk-change-checklist.md](./review/high-risk-change-checklist.md)
 
 ## 3. Source Of Truth 映射
 
@@ -92,6 +94,10 @@
   - [local-development-runbook.md](./local-development-runbook.md)
 - worktree 与分支：
   - [worktree-and-branching-runbook.md](./worktree-and-branching-runbook.md)
+- 第一次真实并行演练：
+  - [parallel-drill-first-wave.md](./parallel-drill-first-wave.md)
+- 并行与上线门槛：
+  - [parallel-and-launch-gates.md](./parallel-and-launch-gates.md)
 
 ### AI 编程治理
 

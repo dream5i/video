@@ -43,6 +43,8 @@ cp .env.example .env
 
 - `API_HOST`
 - `API_PORT`
+- `NEW_PROJECT_REPOSITORY_BACKEND`
+- `DATABASE_URL`
 
 ### 3.3 Python 本地依赖
 
@@ -53,13 +55,15 @@ cp .env.example .env
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-python3 -m pip install fastapi pydantic uvicorn dramatiq
+python3 -m pip install fastapi pydantic uvicorn dramatiq sqlalchemy alembic
 ```
 
 说明：
 
 - 这是当前骨架阶段的最小安装方式
 - 后续进入持久化和真实任务流后，应收口为统一的 Python 开发安装方案
+- 当前默认开发路径已经是 `database`
+- 如果要临时退回内存仓库调试，再显式设置 `NEW_PROJECT_REPOSITORY_BACKEND=memory`
 
 ## 4. 当前固定命令入口
 
@@ -74,6 +78,11 @@ pnpm dev:web
 ```bash
 pnpm dev:api
 ```
+
+说明：
+
+- 这个命令当前会优先使用仓库根目录下的 `.venv`
+- 这是为了让数据库默认路径更稳，不依赖你系统 Python 是否刚好装了 `sqlalchemy`
 
 ### 4.3 Worker 骨架验证
 
@@ -92,6 +101,40 @@ pnpm verify
 - `pnpm -r typecheck`
 - `pnpm --filter @new-project/web build`
 - `python3 -m compileall services/api services/worker`
+- `pnpm test:api`
+
+### 4.5 主链集成测试
+
+在已经激活 `.venv` 的前提下，当前可以单独跑主链集成测试：
+
+```bash
+pnpm test:api
+```
+
+如果只想单独跑 migration 冒烟：
+
+```bash
+pnpm test:api:migrations
+```
+
+这条测试当前覆盖的是：
+
+- 创建项目
+- 获取项目
+- 生成分析结果
+- 生成预填充 workflow
+- 创建 render run
+- 查询历史
+- 覆盖 repository 直连链路
+- 覆盖 HTTP API 对外链路
+- 覆盖基础异常返回契约（如 `404` / `400`）
+- 覆盖 migration smoke
+
+说明：
+
+- 这条测试已经走真实 SQLite 持久化
+- 现在它已经并入仓库默认 `pnpm verify`
+- 这意味着主链已经进入统一自动验收
 
 ## 5. 开发中的默认约束
 
@@ -113,4 +156,4 @@ pnpm verify
 
 - Python 运行时依赖的安装方式仍是骨架阶段方案
 - 真实数据库、真实任务队列和真实对象存储尚未接入
-- CI 已经覆盖基础校验，但还没有进入完整测试分层
+- CI 已接入第一条主链集成测试，但还没有进入完整测试分层

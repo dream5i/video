@@ -33,5 +33,8 @@ jobs:
       - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install API Python dependencies
+        run: python3 -m pip install fastapi pydantic uvicorn sqlalchemy alembic
+
       - name: Verify workspace
         run: pnpm verify

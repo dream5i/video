@@ -10,9 +10,10 @@
 
 - `packages/contracts`：共享 contract
 - `packages/workflow-schema`：workflow / low-code graph schema
-- `services/api`：最小 API 编排层与内存仓库
+- `services/api`：最小 API 编排层，已具备内存仓库和数据库仓库双实现，当前默认走数据库
 - `services/worker`：provider / worker 骨架
 - `apps/web`：面向工作台的 Next.js 页面骨架
+- `tests/integration`：已覆盖数据库主链、HTTP API 主链与 migration smoke
 
 当前可访问的前端路由：
 
@@ -26,6 +27,10 @@
 - `pnpm dev:web`
 - `pnpm dev:api`
 - `pnpm dev:worker`
+- `pnpm test:api`
+- `pnpm test:api:migrations`
+- `pnpm worktree:drill:create`
+- `pnpm worktree:drill:cleanup`
 - `pnpm verify`
 
 ## 文档入口
@@ -37,6 +42,8 @@
 3. [docs/implementation-roadmap.md](./docs/implementation-roadmap.md)
 4. [docs/project-build-readiness-assessment.md](./docs/project-build-readiness-assessment.md)
 5. [docs/local-development-runbook.md](./docs/local-development-runbook.md)
+6. [docs/parallel-drill-first-wave.md](./docs/parallel-drill-first-wave.md)
+7. [docs/parallel-and-launch-gates.md](./docs/parallel-and-launch-gates.md)
 
 ## 当前目录
 
@@ -57,9 +64,10 @@ docs/
 - provider 先按能力抽象，不按厂商散落
 - 先把 contracts 和 workflow schema 定稳，再继续扩功能
 - 当前唯一主链：`输入 -> 分析 -> 预填充工作流 -> 运行 -> 结果 -> 历史`
+- 默认开发路径已切到 `database`，`memory` 只作为兼容 / 调试兜底
 
 ## 下一步
 
-1. 把数据库初稿和 migration skeleton继续落成真实 persistence implementation
+1. 继续把 persistence implementation 从“可用”推进到“更完整可维护”
 2. 把 API / Worker 的 stub 运行流继续替换成真实任务流
-3. 把最小测试从“基础校验”推进到“单元 / 集成 / E2E”
+3. 继续把集成测试从主链验证扩到更细的 API 场景、异常场景与 E2E
