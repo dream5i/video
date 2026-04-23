@@ -1,0 +1,17 @@
+# Project baseline managed config for trusted local main-controller sessions.
+# Scope:
+# - local development only
+# - no production access
+# - no unrestricted network
+# - high-risk changes still require human review outside runtime command approval
+
+approval_policy = "never"
+sandbox_mode = "workspace-write"
+
+[sandbox_workspace_write]
+network_access = false
+
+[otel]
+environment = "project-local"
+exporter = "otlp-http"
+log_user_prompt = false

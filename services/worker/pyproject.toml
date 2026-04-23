@@ -1,0 +1,11 @@
+[project]
+name = "new-project-worker"
+version = "0.1.0"
+description = "Worker and provider adapter layer for 全新项目"
+requires-python = ">=3.11"
+dependencies = [
+  "dramatiq>=1.18.0",
+]
+
+[tool.uv]
+package = false

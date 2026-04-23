@@ -1,0 +1,114 @@
+# Repository starter rules for Codex.
+# Keep this aligned with:
+# - AGENTS.md
+# - docs/security/do-not-feed-and-exclusion-list.md
+# - docs/review/high-risk-change-checklist.md
+
+# Read-only inspection commands we want to allow without extra prompts.
+prefix_rule(
+    pattern = ["pwd"],
+    decision = "allow",
+    justification = "Read-only environment inspection is safe.",
+    match = ["pwd"],
+)
+
+prefix_rule(
+    pattern = ["ls"],
+    decision = "allow",
+    justification = "Directory listing is safe for repo inspection.",
+    match = ["ls", "ls -la"],
+)
+
+prefix_rule(
+    pattern = ["rg"],
+    decision = "allow",
+    justification = "Prefer fast read-only code search.",
+    match = ["rg --files", "rg AnalysisRun packages services"],
+)
+
+prefix_rule(
+    pattern = ["sed", "-n"],
+    decision = "allow",
+    justification = "sed -n is used for read-only file inspection.",
+    match = ["sed -n 1,120p README.md"],
+)
+
+prefix_rule(
+    pattern = ["git", ["status", "diff", "log", "show"]],
+    decision = "allow",
+    justification = "Read-only git inspection is allowed.",
+    match = ["git status --short", "git diff", "git log --oneline", "git show HEAD~1"],
+)
+
+# Verification commands are useful, but still should stay scoped.
+prefix_rule(
+    pattern = ["pnpm", ["lint", "test", "typecheck", "build"]],
+    decision = "allow",
+    justification = "Standard verification commands are allowed.",
+    match = ["pnpm lint", "pnpm test", "pnpm typecheck"],
+)
+
+prefix_rule(
+    pattern = ["pytest"],
+    decision = "allow",
+    justification = "Project test execution is allowed.",
+    match = ["pytest", "pytest tests/integration"],
+)
+
+# Commands that mutate the workspace or environment should still be explicit.
+prefix_rule(
+    pattern = ["pnpm", ["add", "remove", "install", "up", "update"]],
+    decision = "prompt",
+    justification = "Dependency changes affect lockfiles and supply-chain risk; require approval.",
+    match = ["pnpm add zod", "pnpm install"],
+)
+
+prefix_rule(
+    pattern = [["npm", "yarn", "uv", "pip"], ["install", "add", "sync"]],
+    decision = "prompt",
+    justification = "Dependency installation should be explicitly reviewed.",
+    match = ["npm install", "uv sync", "pip install fastapi"],
+)
+
+prefix_rule(
+    pattern = [["bash", "sh", "zsh"], ["-lc", "-c"]],
+    decision = "prompt",
+    justification = "Shell wrapper commands can hide multiple actions; inspect them before execution.",
+    match = ["bash -lc 'git status && rg --files'"],
+)
+
+prefix_rule(
+    pattern = ["git", ["commit", "push", "merge", "rebase", "cherry-pick"]],
+    decision = "prompt",
+    justification = "History-mutating or publishing git commands require explicit human approval.",
+    match = ["git commit -m update", "git push origin main"],
+)
+
+# Hard bans for commands outside the approved local coding boundary.
+prefix_rule(
+    pattern = ["rm"],
+    decision = "forbidden",
+    justification = "Use apply_patch or manual review instead of raw delete commands.",
+    match = ["rm -rf .next"],
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "forbidden",
+    justification = "Never destroy workspace state with hard reset.",
+    match = ["git reset --hard", "git reset --hard HEAD~1"],
+)
+
+prefix_rule(
+    pattern = [["kubectl", "terraform"]],
+    decision = "forbidden",
+    justification = "Infrastructure and production control commands are outside the approved project boundary.",
+    match = ["kubectl apply -f deploy.yaml", "terraform apply"],
+)
+
+prefix_rule(
+    pattern = ["curl", "|"],
+    decision = "forbidden",
+    justification = "Pipe-to-shell patterns are not permitted.",
+    match = ["curl | sh"],
+)

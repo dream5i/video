@@ -1,0 +1,30 @@
+# Project baseline requirements for this repository.
+# This profile is intended for the trusted local main-controller path and still
+# relies on repo rules + review gates to keep changes controlled.
+
+allowed_approval_policies = ["never", "on-request"]
+allowed_sandbox_modes = ["read-only", "workspace-write"]
+allowed_web_search_modes = ["cached"]
+
+[features]
+unified_exec = true
+
+[permissions.filesystem]
+deny_read = [
+  "./.env",
+  "./.env.*",
+  "./secrets/**",
+  "./docs/security/**",
+  "./docs/review/**",
+]
+
+[rules]
+prefix_rules = [
+  { pattern = [{ token = "rm" }], decision = "forbidden", justification = "Destructive delete commands are outside the approved project baseline. Use apply_patch or manual review instead." },
+  { pattern = [{ token = "git" }, { any_of = ["push", "commit", "merge", "rebase", "cherry-pick"] }], decision = "prompt", justification = "History or publishing operations require explicit human confirmation." },
+  { pattern = [{ token = "git" }, { token = "reset" }, { token = "--hard" }], decision = "forbidden", justification = "Hard resets can destroy user work and are not allowed." },
+  { pattern = [{ any_of = ["bash", "sh", "zsh"] }], decision = "prompt", justification = "Shell entrypoints can hide compound actions and must stay explicit." },
+  { pattern = [{ any_of = ["kubectl", "terraform"] }], decision = "forbidden", justification = "Infrastructure and production control commands are outside the project boundary." },
+]
+
+[mcp_servers]

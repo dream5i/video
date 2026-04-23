@@ -1,0 +1,36 @@
+# Example admin-enforced Codex requirements.
+# This file is a template only. Adapt it before deploying it to managed policy.
+
+# Allow only approval levels that preserve human checkpoints.
+allowed_approval_policies = ["untrusted", "on-request"]
+
+# Block full host access by default.
+allowed_sandbox_modes = ["read-only", "workspace-write"]
+
+# Allow cached web only. Live search stays unavailable unless policy changes.
+allowed_web_search_modes = ["cached"]
+
+[features]
+# Keep the feature set explicit and predictable.
+unified_exec = true
+
+[permissions.filesystem]
+deny_read = [
+  "./.env",
+  "./.env.*",
+  "./secrets/**",
+  "./docs/security/**",
+  "./docs/review/**",
+]
+
+[rules]
+prefix_rules = [
+  { pattern = [{ token = "rm" }], decision = "forbidden", justification = "Destructive delete commands are outside the approved default policy. Use apply_patch or manual review instead." },
+  { pattern = [{ token = "git" }, { any_of = ["push", "commit"] }], decision = "prompt", justification = "Publishing or recording history requires explicit human review." },
+  { pattern = [{ token = "git" }, { token = "reset" }, { token = "--hard" }], decision = "forbidden", justification = "Hard resets can destroy user work. Use non-destructive alternatives." },
+  { pattern = [{ any_of = ["bash", "sh", "zsh"] }], decision = "prompt", justification = "Shell entrypoints can hide compound commands and require explicit approval." },
+  { pattern = [{ any_of = ["kubectl", "terraform"] }], decision = "forbidden", justification = "Infrastructure and production mutations are out of scope for default AI coding sessions." },
+]
+
+# Presence of an empty table disables all MCP servers by default.
+[mcp_servers]

@@ -1,0 +1,14 @@
+{
+  "name": "new-project-workspace",
+  "private": true,
+  "packageManager": "pnpm@10.0.0",
+  "scripts": {
+    "dev:web": "pnpm --filter @new-project/web dev",
+    "dev:api": "cd services/api && python3 -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000",
+    "dev:worker": "cd services/worker && python3 -m worker.main",
+    "build:web": "pnpm --filter @new-project/web build",
+    "typecheck": "pnpm -r typecheck",
+    "verify:python": "python3 -m compileall services/api services/worker",
+    "verify": "pnpm typecheck && pnpm build:web && pnpm verify:python"
+  }
+}

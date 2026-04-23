@@ -1,0 +1,25 @@
+# Example managed defaults for Codex enterprise rollout.
+# This file is a template only. It is not auto-loaded from this repo.
+# Deploy via:
+# - /etc/codex/managed_config.toml
+# - MDM managed preferences
+# - your organization's managed configuration flow
+
+# Conservative defaults for day-to-day engineering work.
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[sandbox_workspace_write]
+# Keep network disabled by default. Approve only the minimum domains later.
+network_access = false
+
+[otel]
+# Start with prompt redaction on. Point exporter at your collector when ready.
+environment = "dev"
+exporter = "otlp-http"
+log_user_prompt = false
+
+# Optional future hardening ideas:
+# [features]
+# unified_exec = true
+# personality = true
