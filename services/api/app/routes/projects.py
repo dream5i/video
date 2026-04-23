@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from app.domain.interfaces import ProjectRepository
 from app.domain.repository import get_project_repository
@@ -98,5 +98,8 @@ async def get_result(project_id: str, repository: ProjectRepositoryDependency) -
 
 
 @router.get("/history", response_model=ProjectHistoryResponse)
-async def get_history(repository: ProjectRepositoryDependency) -> ProjectHistoryResponse:
-    return repository.get_history()
+async def get_history(
+    repository: ProjectRepositoryDependency,
+    limit: int | None = Query(default=None, ge=1, le=100),
+) -> ProjectHistoryResponse:
+    return repository.get_history(limit=limit)

@@ -528,9 +528,12 @@ class SqlProjectRepository(ProjectRepository):
                 return None
             return self._output_asset_to_summary(asset_record)
 
-    def get_history(self) -> ProjectHistoryResponse:
+    def get_history(self, limit: int | None = None) -> ProjectHistoryResponse:
         with self._session_factory() as session:
-            runs = list(session.execute(select(RenderRunRecord).order_by(desc(RenderRunRecord.created_at))).scalars())
+            statement = select(RenderRunRecord).order_by(desc(RenderRunRecord.created_at))
+            if limit is not None:
+                statement = statement.limit(limit)
+            runs = list(session.execute(statement).scalars())
             projects = {
                 project.id: project.title
                 for project in session.execute(select(ProjectRecord.id, ProjectRecord.title)).all()
