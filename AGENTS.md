@@ -39,6 +39,9 @@ Changes here must be owned by the main controller or done serially:
 
 - Main controller owns architecture, task split, integration, and final review
 - Sub-agents are allowed only for bounded, non-overlapping tasks
+- The project owner authorizes the main controller to proactively spawn sub-agents during parallel execution without asking each time, as long as the task boundary is clear
+- For parallel lanes, the default review chain is: implementer sub-agent completes -> reviewer sub-agent performs code review -> main controller does final review and integration
+- When the user says `回主控`, re-read `docs/main-controller-reanchor-prompt.md` before planning or execution
 - High-risk changes require an extra review pass
 - Do not expand scope without updating the governing docs or an ADR
 

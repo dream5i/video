@@ -17,6 +17,8 @@
 - Treat GPL/AGPL reference projects as architecture inspiration or sidecar candidates, not as default code-level dependencies for the core product.
 - For the engineering stack, choose an OpenAI-first, Anthropic-compatible, Harness-later strategy: OpenAI as primary AI coding/agent substrate, Anthropic as secondary/reviewer/fallback path, and Harness as a later platform-engineering layer rather than an MVP-critical dependency.
 - Use a main-controller operating model: the main agent owns architecture, integration, and final review; sub-agents are used only for bounded non-overlapping tasks; high-risk changes get an extra review pass; scaffold and shared contracts start single-threaded.
+- The project owner explicitly authorizes the main controller to decide when to use sub-agents for parallel work; when parallel lanes are opened, the default review chain is: implementer sub-agent finishes -> reviewer sub-agent checks -> main controller performs final review and integration.
+- The trigger phrase `回主控` means: re-read `docs/main-controller-reanchor-prompt.md` before planning, delegating, or coding, so the assistant returns to the main-controller viewpoint first.
 - Freeze the first implementation line around repository governance, shared contract stability, storyboard schema stability, and an OpenAI-first provider path before expanding product features.
 - Keep the MVP main flow explicit and fixed as: intake -> analysis -> prefilled workflow -> run -> result -> history.
 - If the target shifts toward enterprise-grade delivery, prioritize evals, tracing/audit, auth/roles, budget and rate-limit control, prompt/version governance, and data-retention policy before expanding feature breadth.

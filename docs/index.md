@@ -43,18 +43,19 @@
 12. [worktree-and-branching-runbook.md](./worktree-and-branching-runbook.md)
 13. [parallel-drill-first-wave.md](./parallel-drill-first-wave.md)
 14. [parallel-and-launch-gates.md](./parallel-and-launch-gates.md)
+15. [main-controller-reanchor-prompt.md](./main-controller-reanchor-prompt.md)
 
 ### Step 4：最后看企业与 AI 编程治理
 
-15. [database-persistence-and-migration-plan.md](./database-persistence-and-migration-plan.md)
-16. [release-checklist.md](./release-checklist.md)
-17. [rollback-runbook.md](./rollback-runbook.md)
-18. [enterprise-ai-readiness-assessment.md](./enterprise-ai-readiness-assessment.md)
-19. [enterprise-ai-coding-rules.md](./enterprise-ai-coding-rules.md)
-20. [enterprise-ai-coding-operating-playbook.md](./enterprise-ai-coding-operating-playbook.md)
-21. [security/ai-coding-policy-matrix.md](./security/ai-coding-policy-matrix.md)
-22. [security/do-not-feed-and-exclusion-list.md](./security/do-not-feed-and-exclusion-list.md)
-23. [review/high-risk-change-checklist.md](./review/high-risk-change-checklist.md)
+16. [database-persistence-and-migration-plan.md](./database-persistence-and-migration-plan.md)
+17. [release-checklist.md](./release-checklist.md)
+18. [rollback-runbook.md](./rollback-runbook.md)
+19. [enterprise-ai-readiness-assessment.md](./enterprise-ai-readiness-assessment.md)
+20. [enterprise-ai-coding-rules.md](./enterprise-ai-coding-rules.md)
+21. [enterprise-ai-coding-operating-playbook.md](./enterprise-ai-coding-operating-playbook.md)
+22. [security/ai-coding-policy-matrix.md](./security/ai-coding-policy-matrix.md)
+23. [security/do-not-feed-and-exclusion-list.md](./security/do-not-feed-and-exclusion-list.md)
+24. [review/high-risk-change-checklist.md](./review/high-risk-change-checklist.md)
 
 ## 3. Source Of Truth 映射
 
@@ -90,6 +91,8 @@
 
 - 主文档：
   - [implementation-roadmap.md](./implementation-roadmap.md)
+- 主控回锚点：
+  - [main-controller-reanchor-prompt.md](./main-controller-reanchor-prompt.md)
 - 本地运行：
   - [local-development-runbook.md](./local-development-runbook.md)
 - worktree 与分支：
