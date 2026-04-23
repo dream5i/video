@@ -163,10 +163,26 @@ pnpm worktree:drill:create
 - `.worktrees/parallel-01-web-read`
 - `.worktrees/parallel-01-review`
 
+现在默认还会自动补：
+
+- `.venv` 接入
+- `pnpm install --frozen-lockfile`
+
+小白版解释：
+
+- 新分支建出来之后，不用你再一条条补环境命令
+- 脚本会先把基础开工条件铺好
+
 ### 7.2 指定 drill id 或 base ref
 
 ```bash
 bash scripts/worktree/create_parallel_drill.sh parallel-02 HEAD
+```
+
+如果你只想创建树，不想自动补环境，可以这样：
+
+```bash
+BOOTSTRAP_WORKTREES=0 bash scripts/worktree/create_parallel_drill.sh parallel-02 HEAD
 ```
 
 ### 7.3 清理演练 worktree

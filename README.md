@@ -29,6 +29,7 @@
 - `pnpm dev:worker`
 - `pnpm test:api`
 - `pnpm test:api:migrations`
+- `pnpm worktree:bootstrap -- .worktrees/<name>`
 - `pnpm worktree:drill:create`
 - `pnpm worktree:drill:cleanup`
 - `pnpm verify`

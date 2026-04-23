@@ -80,6 +80,16 @@ pnpm worktree:drill:create
 - Web / Read 线
 - Review pass 线
 
+现在脚本还会顺手做两件事：
+
+- 把仓库根目录的 `.venv` 接到每个 worktree 里
+- 在每个 worktree 里跑一次 `CI=1 pnpm install --frozen-lockfile`
+
+小白版解释：
+
+- 不只是开三间新房
+- 还会把每间房常用的电和工具先接好
+
 ### 5.2 为 review pass 单独开只读审查树
 
 ```bash
@@ -102,6 +112,25 @@ git worktree remove .worktrees/feat-web-workspace
 
 ```bash
 pnpm worktree:drill:cleanup
+```
+
+### 5.5 手动补齐某个 worktree 的运行环境
+
+如果某个 worktree 是更早创建的，或者你想手动重新补环境，可以执行：
+
+```bash
+pnpm worktree:bootstrap -- .worktrees/parallel-01-api-data
+```
+
+它默认会做：
+
+- 链接根目录 `.venv`
+- 执行 `CI=1 pnpm install --frozen-lockfile`
+
+如果你只想补 Python 环境，不想重新装 Node 依赖，可以这样：
+
+```bash
+SKIP_NODE_INSTALL=1 pnpm worktree:bootstrap -- .worktrees/parallel-01-api-data
 ```
 
 ## 6. 共享锁定区
@@ -143,6 +172,12 @@ review pass 至少检查：
 2. 主控在主工作区重新拉取并审查
 3. 必要时补独立 review pass
 4. 合并前至少跑一次 `pnpm verify`
+
+补充：
+
+- 新建 worktree 后，建议先在各自 worktree 里跑一次 `pnpm verify`
+- 如果报的是 `sqlalchemy` / `alembic` 缺失，先检查根目录 `.venv` 是否已经建好
+- 如果前端构建出现 root 推断噪音，先确认当前分支已经带上新的 `next.config.mjs`
 
 ## 9. checkpoint 规则
 

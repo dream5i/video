@@ -103,7 +103,25 @@ pnpm verify
 - `python3 -m compileall services/api services/worker`
 - `pnpm test:api`
 
-### 4.5 主链集成测试
+### 4.5 worktree 环境补齐
+
+如果你在并行开发里新开了一个 worktree，推荐立刻执行：
+
+```bash
+pnpm worktree:bootstrap -- .worktrees/parallel-01-api-data
+```
+
+这条命令会做两件事：
+
+- 把仓库根目录的 `.venv` 接到这个 worktree
+- 在这个 worktree 里执行一次 `CI=1 pnpm install --frozen-lockfile`
+
+小白版解释：
+
+- 这一步是在给新工位发工具箱
+- 没做这一步，后面 `pnpm verify` 可能不是代码错，而是环境没接好
+
+### 4.6 主链集成测试
 
 在已经激活 `.venv` 的前提下，当前可以单独跑主链集成测试：
 
