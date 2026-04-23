@@ -36,6 +36,39 @@ function readSearchValue(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
+function getStageSummary(stage: (typeof stageFlow)[number] | "analysis_pending" | "failed") {
+  switch (stage) {
+    case "draft":
+      return "项目刚创建完成，下一步是补齐分析结果。";
+    case "analysis_ready":
+      return "分析已经就绪，可以继续查看脚本和镜头规划。";
+    case "workflow_ready":
+      return "工作流草稿已经可执行，可以直接发起一次运行。";
+    case "render_pending":
+      return "最近一次运行已经排队，当前重点是盯住运行状态和结果产出。";
+    case "result_ready":
+      return "结果资产已经挂上主链，当前可以进入复盘或继续生成下一版。";
+    case "analysis_pending":
+      return "系统正在分析素材，等待结果回填到工作台。";
+    case "failed":
+      return "主链在某一步失败了，建议先看最近运行和错误位置。";
+    default:
+      return "当前主链状态已经记录，可继续沿既有工作台往下走。";
+  }
+}
+
+function getResultSummary(hasAsset: boolean, currentStage: string) {
+  if (hasAsset) {
+    return "结果资产已经生成，当前页面可以直接拿到结果锚点。";
+  }
+
+  if (currentStage === "render_pending") {
+    return "运行已经发起，但结果资产还没挂回来。";
+  }
+
+  return "结果资产还没生成，这一层目前只显示稳定占位。";
+}
+
 export default async function ProjectDetailPage({
   params,
   searchParams
@@ -77,8 +110,15 @@ export default async function ProjectDetailPage({
   const latestRunId = refreshedProject.latestRenderRunId;
   const runResponse = latestRunId ? await getRenderRun(projectId, latestRunId) : null;
   const historyItems = historyResponse?.items.filter((item) => item.projectId === projectId) ?? [];
+  const latestHistoryItem = historyItems[0] ?? null;
   const workflow = workflowResponse?.workflow ?? null;
   const renderAction = workflow ? createRenderRunAction.bind(null, projectId, workflow.id) : null;
+  const latestRunStatus = runResponse?.run.status ?? latestHistoryItem?.status ?? null;
+  const latestRunLabel = latestRunStatus ? formatRunStatusLabel(latestRunStatus) : "待发起";
+  const latestRunTone = latestRunStatus ? runToneClass(latestRunStatus) : "tone-neutral";
+  const latestRunUpdatedAt = runResponse?.run.completedAt ?? runResponse?.run.createdAt ?? latestHistoryItem?.updatedAt ?? null;
+  const hasResultAsset = Boolean(resultResponse?.asset);
+  const resultTone = hasResultAsset ? "tone-success" : refreshedProject.currentStage === "render_pending" ? "tone-progress" : "tone-neutral";
 
   return (
     <main className="page">
@@ -118,6 +158,57 @@ export default async function ProjectDetailPage({
               <p className="metric-value">{workflow?.lowCodeGraph.nodes.length ?? 0} nodes</p>
             </article>
           </div>
+        </div>
+      </section>
+
+      <section className="section">
+        <div className="section-head">
+          <div>
+            <p className="eyebrow">Workspace Snapshot</p>
+            <h2 className="section-title">先看总览，再看细节</h2>
+            <p className="section-copy">这一层只负责回答 3 个问题：项目现在在哪、最近一次运行到哪、结果资产有没有回来。</p>
+          </div>
+        </div>
+        <div className="snapshot-grid">
+          <article className="card snapshot-card">
+            <div className="snapshot-head">
+              <p className="eyebrow">Current Stage</p>
+              <span className={`status-pill ${stageToneClass(refreshedProject.currentStage)}`}>{formatStageLabel(refreshedProject.currentStage)}</span>
+            </div>
+            <h3 className="snapshot-value">{formatStageLabel(refreshedProject.currentStage)}</h3>
+            <p className="snapshot-copy">{getStageSummary(refreshedProject.currentStage)}</p>
+            <p className="snapshot-detail">最近更新时间：{formatDateTime(refreshedProject.updatedAt)}</p>
+          </article>
+
+          <article className="card snapshot-card">
+            <div className="snapshot-head">
+              <p className="eyebrow">Latest Run</p>
+              <span className={`status-pill ${latestRunTone}`}>{latestRunLabel}</span>
+            </div>
+            <h3 className="snapshot-value">{runResponse?.run.provider ?? latestHistoryItem?.runType ?? "还没发起运行"}</h3>
+            <p className="snapshot-copy">
+              {runResponse
+                ? "最近一次运行详情已经被工作台捕获，可以继续往下看步骤和成本。"
+                : latestHistoryItem
+                  ? "历史里已经有最近一次运行，但当前详情还没挂到项目主链上。"
+                  : "这个项目还没有独立运行记录，工作流准备好后可以直接发起。"}
+            </p>
+            <p className="snapshot-detail">
+              {latestRunUpdatedAt ? `最近运行时间：${formatDateTime(latestRunUpdatedAt)}` : "最近运行时间：未生成"}
+            </p>
+          </article>
+
+          <article className="card snapshot-card">
+            <div className="snapshot-head">
+              <p className="eyebrow">Result Status</p>
+              <span className={`status-pill ${resultTone}`}>{hasResultAsset ? "结果已挂载" : "等待结果"}</span>
+            </div>
+            <h3 className="snapshot-value">{hasResultAsset ? resultResponse?.asset?.assetType : "暂无结果资产"}</h3>
+            <p className="snapshot-copy">{getResultSummary(hasResultAsset, refreshedProject.currentStage)}</p>
+            <p className="snapshot-detail">
+              {resultResponse?.asset?.storageKey ? `结果锚点：${resultResponse.asset.storageKey}` : "结果锚点：等待运行完成后生成"}
+            </p>
+          </article>
         </div>
       </section>
 
