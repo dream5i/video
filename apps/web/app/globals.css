@@ -258,6 +258,12 @@ textarea {
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
 }
 
+.snapshot-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
 .card {
   border-radius: 26px;
   border: 1px solid var(--border);
@@ -282,6 +288,51 @@ textarea {
 
 .small-copy {
   font-size: 0.92rem;
+}
+
+.snapshot-card {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at top right, rgba(216, 180, 129, 0.22), transparent 30%),
+    linear-gradient(180deg, rgba(255, 252, 246, 0.9), rgba(255, 247, 235, 0.82));
+}
+
+.snapshot-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 42%);
+}
+
+.snapshot-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.snapshot-value {
+  margin: 14px 0 8px;
+  font-family: var(--heading-font);
+  font-size: clamp(1.55rem, 3vw, 2.2rem);
+  line-height: 1.05;
+}
+
+.snapshot-copy {
+  margin: 0;
+  min-height: 72px;
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.snapshot-detail {
+  margin: 18px 0 0;
+  color: var(--accent-strong);
+  font-size: 0.9rem;
+  line-height: 1.65;
+  word-break: break-word;
 }
 
 .flow-list,
