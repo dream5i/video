@@ -263,7 +263,7 @@ class InMemoryProjectRepository(ProjectRepository):
             raise KeyError(project_id)
         return self.output_assets.get(project_id)
 
-    def get_history(self) -> ProjectHistoryResponse:
+    def get_history(self, limit: int | None = None) -> ProjectHistoryResponse:
         items = [
             ProjectHistoryItem(
                 project_id=run.project_id,
@@ -275,6 +275,8 @@ class InMemoryProjectRepository(ProjectRepository):
             )
             for run in sorted(self.render_runs.values(), key=lambda item: item.created_at, reverse=True)
         ]
+        if limit is not None:
+            items = items[:limit]
         return ProjectHistoryResponse(items=items)
 
 

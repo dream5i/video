@@ -81,3 +81,7 @@ class SqlRepositoryMainFlowIntegrationTest(unittest.TestCase):
                 for item in history_response.items
             )
         )
+
+        limited_history_response = self.repository.get_history(limit=1)
+        self.assertEqual(len(limited_history_response.items), 1)
+        self.assertEqual(limited_history_response.items[0].run_id, render_response.run.id)

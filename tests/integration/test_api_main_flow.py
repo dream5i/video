@@ -240,3 +240,33 @@ class ApiMainFlowIntegrationTest(unittest.TestCase):
         )
         self.assertEqual(render_status, 404)
         self.assertEqual(render_payload["detail"], "project or workflow not found")
+
+    def test_http_api_history_supports_limit_query(self) -> None:
+        project_id, _ = self._create_project(
+            title="HTTP 历史 limit 测试项目",
+            source_url="https://example.com/douyin/http-history-limit",
+        )
+
+        workflow_status, workflow_payload = request_json("GET", f"{self.base_url}/api/projects/{project_id}/workflow")
+        self.assertEqual(workflow_status, 200)
+
+        render_status, render_payload = request_json(
+            "POST",
+            f"{self.base_url}/api/projects/{project_id}/renders",
+            payload={
+                "projectId": project_id,
+                "workflowDraftId": workflow_payload["workflow"]["id"],
+            },
+        )
+        self.assertEqual(render_status, 200)
+        latest_run_id = render_payload["run"]["id"]
+
+        history_status, history_payload = request_json("GET", f"{self.base_url}/api/history?limit=1")
+        self.assertEqual(history_status, 200)
+        self.assertEqual(len(history_payload["items"]), 1)
+        self.assertEqual(history_payload["items"][0]["runId"], latest_run_id)
+
+    def test_http_api_history_rejects_invalid_limit(self) -> None:
+        history_status, history_payload = request_json("GET", f"{self.base_url}/api/history?limit=0")
+        self.assertEqual(history_status, 422)
+        self.assertEqual(history_payload["detail"][0]["loc"], ["query", "limit"])
