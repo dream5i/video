@@ -130,7 +130,7 @@
 | 主控与 AI 协作治理 | 明确 AI 怎么参与、什么时候能并行、谁终审 | 主控模型、review pass、worktree 治理、并行门槛都已成型 | 已明确 | 后续按既定模式执行即可 |
 | 正式架构定版 | 不只是“架构草稿”，而是有一份被认定为当前版本的系统设计说明，含取舍和质量属性 | 已新增 `enterprise-architecture-spec.md` 作为当前施工蓝图，后续仍需随着系统演进补 ADR | 部分明确 | 持续把重大变化沉淀为 ADR，不让正式蓝图再次漂回草稿 |
 | 所有权与审批矩阵 | 明确 code owner、审批人、谁对安全/数据/平台负责 | 已新增 `.github/CODEOWNERS` 与 `ownership-and-approval-matrix.md`，但仍是单 owner 版，平台规则未强制 | 部分明确 | 补平台 ruleset / branch protection，并在多人协作前升级为团队 owner |
-| 分支保护与合并门禁 | 需要 review、状态检查、保护规则、禁止绕过主线 | 已新增 ruleset baseline 文档和第一条 dependency review 自动门禁，但 GitHub 平台侧 ruleset / branch protection 仍需手动配置 | 部分明确 | 把 required checks、required reviews、code owner review 真正绑定到平台规则上 |
+| 分支保护与合并门禁 | 需要 review、状态检查、保护规则、禁止绕过主线 | 已新增 ruleset baseline 文档和自动化门禁，并已在 GitHub 平台为 `main` 打开第一版 branch protection；当前仍处于单人阶段安全版，尚未升级到多人团队版强审门禁 | 部分明确 | 保持当前 `main` 门禁，待第二个正式 reviewer 出现后，再把 required review 和 code owner review 升级为强制 |
 | 非功能基线 | 先定性能、稳定性、容量、成本、可恢复目标 | 已新增 `nfr-and-slo-baseline.md`，但仍属于第一版工程底线，还不是正式对外 SLA 包 | 部分明确 | 随着主链稳定，把当前基线升级成可测量、可追踪、可验收的门槛 |
 | 可观测性与告警 | 明确日志、指标、trace、告警阈值、dashboard 归属 | 已新增 `observability-and-alerting-baseline.md`，且 API 已接入 `request_id` / `trace_id`、结构化错误和关键 run 日志，但 dashboard / alerting 平台仍未接上 | 部分明确 | 继续把指标、trace、告警真正接进平台，并扩到 worker / provider |
 | 安全设计包 | 威胁建模、信任边界、密钥治理、依赖和供应链治理 | 已新增 threat model 与 dependency/license gate 文档，但还没有全部做成自动门禁 | 部分明确 | 把依赖、权限、敏感数据边界继续做成平台化和流水线门禁 |
