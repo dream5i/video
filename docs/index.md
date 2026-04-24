@@ -49,27 +49,29 @@
 18. [parallel-drill-first-wave.md](./parallel-drill-first-wave.md)
 19. [parallel-and-launch-gates.md](./parallel-and-launch-gates.md)
 20. [repo-ruleset-and-branch-protection-baseline.md](./repo-ruleset-and-branch-protection-baseline.md)
-21. [main-controller-reanchor-prompt.md](./main-controller-reanchor-prompt.md)
+21. [github-platform-gates-rollout-checklist.md](./github-platform-gates-rollout-checklist.md)
+22. [main-controller-reanchor-prompt.md](./main-controller-reanchor-prompt.md)
 
 ### Step 4：最后看企业与 AI 编程治理
 
-22. [database-persistence-and-migration-plan.md](./database-persistence-and-migration-plan.md)
-23. [data-lifecycle-and-recovery-baseline.md](./data-lifecycle-and-recovery-baseline.md)
-24. [environment-promotion-model.md](./environment-promotion-model.md)
-25. [nfr-and-slo-baseline.md](./nfr-and-slo-baseline.md)
-26. [observability-and-alerting-baseline.md](./observability-and-alerting-baseline.md)
-27. [release-checklist.md](./release-checklist.md)
-28. [rollback-runbook.md](./rollback-runbook.md)
-29. [project-build-readiness-assessment.md](./project-build-readiness-assessment.md)
-30. [enterprise-prebuild-alignment-gap-analysis.md](./enterprise-prebuild-alignment-gap-analysis.md)
-31. [enterprise-ai-readiness-assessment.md](./enterprise-ai-readiness-assessment.md)
-32. [enterprise-ai-coding-rules.md](./enterprise-ai-coding-rules.md)
-33. [enterprise-ai-coding-operating-playbook.md](./enterprise-ai-coding-operating-playbook.md)
-34. [security/ai-coding-policy-matrix.md](./security/ai-coding-policy-matrix.md)
-35. [security/do-not-feed-and-exclusion-list.md](./security/do-not-feed-and-exclusion-list.md)
-36. [security/threat-model-and-trust-boundaries.md](./security/threat-model-and-trust-boundaries.md)
-37. [security/dependency-and-license-gates.md](./security/dependency-and-license-gates.md)
-38. [review/high-risk-change-checklist.md](./review/high-risk-change-checklist.md)
+23. [database-persistence-and-migration-plan.md](./database-persistence-and-migration-plan.md)
+24. [data-lifecycle-and-recovery-baseline.md](./data-lifecycle-and-recovery-baseline.md)
+25. [environment-promotion-model.md](./environment-promotion-model.md)
+26. [nfr-and-slo-baseline.md](./nfr-and-slo-baseline.md)
+27. [observability-and-alerting-baseline.md](./observability-and-alerting-baseline.md)
+28. [release-checklist.md](./release-checklist.md)
+29. [rollback-runbook.md](./rollback-runbook.md)
+30. [project-build-readiness-assessment.md](./project-build-readiness-assessment.md)
+31. [enterprise-prebuild-alignment-gap-analysis.md](./enterprise-prebuild-alignment-gap-analysis.md)
+32. [enterprise-alignment-gap-priority-matrix.md](./enterprise-alignment-gap-priority-matrix.md)
+33. [enterprise-ai-readiness-assessment.md](./enterprise-ai-readiness-assessment.md)
+34. [enterprise-ai-coding-rules.md](./enterprise-ai-coding-rules.md)
+35. [enterprise-ai-coding-operating-playbook.md](./enterprise-ai-coding-operating-playbook.md)
+36. [security/ai-coding-policy-matrix.md](./security/ai-coding-policy-matrix.md)
+37. [security/do-not-feed-and-exclusion-list.md](./security/do-not-feed-and-exclusion-list.md)
+38. [security/threat-model-and-trust-boundaries.md](./security/threat-model-and-trust-boundaries.md)
+39. [security/dependency-and-license-gates.md](./security/dependency-and-license-gates.md)
+40. [review/high-risk-change-checklist.md](./review/high-risk-change-checklist.md)
 
 ## 3. Source Of Truth 映射
 
@@ -116,6 +118,7 @@
   - [incident-response-and-escalation-matrix.md](./incident-response-and-escalation-matrix.md)
 - 平台门禁：
   - [repo-ruleset-and-branch-protection-baseline.md](./repo-ruleset-and-branch-protection-baseline.md)
+  - [github-platform-gates-rollout-checklist.md](./github-platform-gates-rollout-checklist.md)
 - 主控回锚点：
   - [main-controller-reanchor-prompt.md](./main-controller-reanchor-prompt.md)
 - 本地运行：
@@ -139,6 +142,7 @@
   - [environment-promotion-model.md](./environment-promotion-model.md)
 - 企业级开工前对齐：
   - [enterprise-prebuild-alignment-gap-analysis.md](./enterprise-prebuild-alignment-gap-analysis.md)
+  - [enterprise-alignment-gap-priority-matrix.md](./enterprise-alignment-gap-priority-matrix.md)
 - 操作手册：
   - [enterprise-ai-coding-operating-playbook.md](./enterprise-ai-coding-operating-playbook.md)
 - 权限和安全补充：
