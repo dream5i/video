@@ -11,6 +11,15 @@ import type {
 
 const DEFAULT_API_BASE_URL = "http://localhost:8000";
 
+type ErrorPayload = {
+  detail?: {
+    message?: string;
+    errorCode?: string;
+    requestId?: string;
+    traceId?: string;
+  };
+};
+
 function getApiBaseUrl() {
   return process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? DEFAULT_API_BASE_URL;
 }
@@ -30,8 +39,26 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   });
 
   if (!response.ok) {
-    const detail = await response.text();
-    throw new Error(detail || `Request failed with status ${response.status}`);
+    const responseText = await response.text();
+    const traceId = response.headers.get("x-trace-id");
+    const requestId = response.headers.get("x-request-id");
+    let payload: ErrorPayload | null = null;
+
+    try {
+      payload = JSON.parse(responseText) as ErrorPayload;
+    } catch {
+      payload = null;
+    }
+
+    if (payload?.detail) {
+      const message = payload.detail?.message || `Request failed with status ${response.status}`;
+      const errorCode = payload.detail?.errorCode ? ` (${payload.detail.errorCode})` : "";
+      const traceSuffix = payload.detail?.traceId || traceId ? ` [trace:${payload.detail?.traceId || traceId}]` : "";
+      const requestSuffix = payload.detail?.requestId || requestId ? ` [request:${payload.detail?.requestId || requestId}]` : "";
+      throw new Error(`${message}${errorCode}${traceSuffix}${requestSuffix}`);
+    }
+
+    throw new Error(responseText || `Request failed with status ${response.status}`);
   }
 
   return (await response.json()) as T;

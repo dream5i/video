@@ -45,10 +45,11 @@ export async function createProjectAction(formData: FormData) {
     };
   }
 
-  try {
-    const response = await createProject(payload);
-    redirect(`/projects/${response.project.id}`);
-  } catch {
+  const response = await createProject(payload).catch(() => null);
+
+  if (response === null) {
     redirect(`/projects/new?error=${sourceType === "video_url" ? "video_create_failed" : "brief_create_failed"}`);
   }
+
+  redirect(`/projects/${response.project.id}`);
 }

@@ -7,6 +7,7 @@ from app.schemas import (
     AnalysisInsight,
     AnalysisOutput,
     AnalysisSourceSummary,
+    OutputAssetSummary,
     RunStepSummary,
     ScriptDraft,
     ShotPlan,
@@ -147,25 +148,83 @@ def build_workflow_from_analysis(project_id: str, analysis_output: AnalysisOutpu
 
 
 def build_run_steps(provider: str, status: str) -> list[RunStepSummary]:
-    step_status = "succeeded" if status == "succeeded" else status
-    now = utc_now() if status == "succeeded" else None
+    return build_render_run_steps(provider, status)
+
+
+def build_render_run_steps(
+    provider: str,
+    status: str,
+    *,
+    started_at: str | None = None,
+    finished_at: str | None = None,
+    error_message: str | None = None,
+) -> list[RunStepSummary]:
+    if status == "queued":
+        prepare_status = "queued"
+        submit_status = "queued"
+        prepare_started_at = None
+        prepare_finished_at = None
+        submit_started_at = None
+        submit_finished_at = None
+        submit_error = None
+    elif status == "running":
+        resolved_started_at = started_at or utc_now()
+        prepare_status = "succeeded"
+        submit_status = "running"
+        prepare_started_at = resolved_started_at
+        prepare_finished_at = resolved_started_at
+        submit_started_at = resolved_started_at
+        submit_finished_at = None
+        submit_error = None
+    elif status == "succeeded":
+        resolved_started_at = started_at or utc_now()
+        resolved_finished_at = finished_at or resolved_started_at
+        prepare_status = "succeeded"
+        submit_status = "succeeded"
+        prepare_started_at = resolved_started_at
+        prepare_finished_at = resolved_started_at
+        submit_started_at = resolved_started_at
+        submit_finished_at = resolved_finished_at
+        submit_error = None
+    elif status == "failed":
+        resolved_started_at = started_at or utc_now()
+        resolved_finished_at = finished_at or resolved_started_at
+        prepare_status = "succeeded"
+        submit_status = "failed"
+        prepare_started_at = resolved_started_at
+        prepare_finished_at = resolved_started_at
+        submit_started_at = resolved_started_at
+        submit_finished_at = resolved_finished_at
+        submit_error = error_message or "render run failed"
+    else:
+        raise ValueError(f"Unsupported render run status: {status}")
+
     return [
         RunStepSummary(
             name="prepare_workflow",
-            status=step_status,
+            status=prepare_status,
             capability="render",
             provider=provider,
-            started_at=now,
-            finished_at=now,
+            started_at=prepare_started_at,
+            finished_at=prepare_finished_at,
             error_message=None,
         ),
         RunStepSummary(
             name="submit_render",
-            status=step_status,
+            status=submit_status,
             capability="render",
             provider=provider,
-            started_at=now,
-            finished_at=now,
-            error_message=None,
+            started_at=submit_started_at,
+            finished_at=submit_finished_at,
+            error_message=submit_error,
         ),
     ]
+
+
+def build_output_asset_summary(project_id: str, run_id: str) -> OutputAssetSummary:
+    return OutputAssetSummary(
+        id=make_id("asset"),
+        asset_type="video",
+        storage_key=f"projects/{project_id}/runs/{run_id}/output.mp4",
+        preview_storage_key=f"projects/{project_id}/runs/{run_id}/preview.jpg",
+    )

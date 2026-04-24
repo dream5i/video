@@ -10,10 +10,15 @@
     "typecheck": "pnpm -r typecheck",
     "test:api": "if [ -x .venv/bin/python ]; then .venv/bin/python -m unittest discover -s tests/integration -p 'test_*_flow.py'; else python3 -m unittest discover -s tests/integration -p 'test_*_flow.py'; fi",
     "test:api:migrations": "if [ -x .venv/bin/python ]; then .venv/bin/python -m unittest tests.integration.test_migration_flow; else python3 -m unittest tests.integration.test_migration_flow; fi",
+    "test:e2e": "playwright test",
+    "test:e2e:install": "playwright install chromium",
     "worktree:bootstrap": "bash scripts/worktree/bootstrap_worktree.sh",
     "worktree:drill:create": "bash scripts/worktree/create_parallel_drill.sh",
     "worktree:drill:cleanup": "bash scripts/worktree/cleanup_parallel_drill.sh",
     "verify:python": "python3 -m compileall services/api services/worker",
     "verify": "pnpm typecheck && pnpm build:web && pnpm verify:python && pnpm test:api"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.59.1"
   }
 }

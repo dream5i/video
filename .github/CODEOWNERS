@@ -1,0 +1,33 @@
+# 全新项目 CODEOWNERS
+#
+# 当前仓库仍处在单 owner + 主控统筹阶段，先用单 owner 落第一版。
+# 如果后续迁到 GitHub 组织或多人正式协作，请把 @dream5i 替换为团队账号。
+
+* @dream5i
+
+# Shared core and locked areas
+/packages/contracts/ @dream5i
+/packages/workflow-schema/ @dream5i
+/services/api/app/domain/ @dream5i
+/services/api/app/providers/interfaces/ @dream5i
+/services/api/alembic/ @dream5i
+
+# Delivery and governance
+/.github/ @dream5i
+/infra/ @dream5i
+/docs/ @dream5i
+/scripts/ @dream5i
+
+# Product applications
+/apps/web/ @dream5i
+/services/api/ @dream5i
+/services/worker/ @dream5i
+
+# Repo root governance files
+/AGENTS.md @dream5i
+/MEMORIES.MD @dream5i
+/README.md @dream5i
+/package.json @dream5i
+/pnpm-lock.yaml @dream5i
+/pnpm-workspace.yaml @dream5i
+/tsconfig.base.json @dream5i

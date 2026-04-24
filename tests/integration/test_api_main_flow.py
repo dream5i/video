@@ -21,7 +21,7 @@ def find_free_port() -> int:
         return int(sock.getsockname()[1])
 
 
-def request_json(method: str, url: str, payload: dict | None = None) -> tuple[int, dict]:
+def request_json_response(method: str, url: str, payload: dict | None = None) -> tuple[int, dict, dict[str, str]]:
     encoded_payload = None
     headers: dict[str, str] = {}
     if payload is not None:
@@ -32,13 +32,18 @@ def request_json(method: str, url: str, payload: dict | None = None) -> tuple[in
     try:
         with request.urlopen(http_request, timeout=10) as response:
             body = response.read().decode("utf-8")
-            return response.status, json.loads(body)
+            return response.status, json.loads(body), dict(response.headers.items())
     except error.HTTPError as exc:
         try:
             body = exc.read().decode("utf-8")
-            return exc.code, json.loads(body)
+            return exc.code, json.loads(body), dict(exc.headers.items())
         finally:
             exc.close()
+
+
+def request_json(method: str, url: str, payload: dict | None = None) -> tuple[int, dict]:
+    status, payload_body, _ = request_json_response(method, url, payload)
+    return status, payload_body
 
 
 class ApiMainFlowIntegrationTest(unittest.TestCase):
@@ -100,8 +105,10 @@ class ApiMainFlowIntegrationTest(unittest.TestCase):
                 self.fail(f"API server exited before becoming ready.\n{output}")
 
             try:
-                status, payload = request_json("GET", f"{self.base_url}/api/health")
+                status, payload, headers = request_json_response("GET", f"{self.base_url}/api/health")
                 if status == 200 and payload.get("status") == "ok":
+                    self.assertIn("x-request-id", {key.lower(): value for key, value in headers.items()})
+                    self.assertIn("x-trace-id", {key.lower(): value for key, value in headers.items()})
                     return
             except (OSError, error.URLError, json.JSONDecodeError) as exc:
                 last_error = exc
@@ -111,7 +118,7 @@ class ApiMainFlowIntegrationTest(unittest.TestCase):
         self.fail(f"API server did not become ready in time: {last_error}")
 
     def _create_project(self, title: str, source_url: str) -> tuple[str, dict]:
-        create_status, create_payload = request_json(
+        create_status, create_payload, create_headers = request_json_response(
             "POST",
             f"{self.base_url}/api/projects",
             payload={
@@ -122,7 +129,41 @@ class ApiMainFlowIntegrationTest(unittest.TestCase):
             },
         )
         self.assertEqual(create_status, 200)
+        normalized_headers = {key.lower(): value for key, value in create_headers.items()}
+        self.assertIn("x-request-id", normalized_headers)
+        self.assertIn("x-trace-id", normalized_headers)
         return create_payload["project"]["id"], create_payload
+
+    def _wait_for_run_status(self, project_id: str, run_id: str, expected_status: str) -> dict:
+        deadline = time.time() + 10
+        last_payload: dict | None = None
+
+        while time.time() < deadline:
+            run_status, run_payload = request_json("GET", f"{self.base_url}/api/projects/{project_id}/runs/{run_id}")
+            self.assertEqual(run_status, 200)
+            last_payload = run_payload
+            current_status = run_payload["run"]["status"]
+            if current_status == expected_status:
+                return run_payload
+            if current_status == "failed" and expected_status != "failed":
+                self.fail(f"render run ended in failed unexpectedly: {run_payload}")
+            time.sleep(0.2)
+
+        self.fail(f"render run did not reach {expected_status} in time: {last_payload}")
+
+    def _wait_for_result_asset(self, project_id: str) -> dict:
+        deadline = time.time() + 10
+        last_payload: dict | None = None
+
+        while time.time() < deadline:
+            result_status, result_payload = request_json("GET", f"{self.base_url}/api/projects/{project_id}/result")
+            self.assertEqual(result_status, 200)
+            last_payload = result_payload
+            if result_payload["asset"] is not None:
+                return result_payload
+            time.sleep(0.2)
+
+        self.fail(f"result asset did not become available in time: {last_payload}")
 
     def test_http_api_supports_mvp_main_flow(self) -> None:
         project_id, create_payload = self._create_project(
@@ -139,6 +180,7 @@ class ApiMainFlowIntegrationTest(unittest.TestCase):
         self.assertEqual(analysis_status, 200)
         self.assertEqual(analysis_payload["run"]["status"], "succeeded")
         self.assertEqual(analysis_payload["sourceSummary"]["sourceType"], "video_url")
+        self.assertTrue(analysis_payload["run"]["traceId"].startswith("trace_"))
 
         workflow_status, workflow_payload = request_json("GET", f"{self.base_url}/api/projects/{project_id}/workflow")
         self.assertEqual(workflow_status, 200)
@@ -154,21 +196,23 @@ class ApiMainFlowIntegrationTest(unittest.TestCase):
             },
         )
         self.assertEqual(render_status, 200)
-        self.assertEqual(render_payload["run"]["status"], "queued")
+        self.assertIn(render_payload["run"]["status"], {"queued", "succeeded"})
         self.assertGreater(len(render_payload["steps"]), 0)
 
         run_id = render_payload["run"]["id"]
-        run_status, run_payload = request_json("GET", f"{self.base_url}/api/projects/{project_id}/runs/{run_id}")
-        self.assertEqual(run_status, 200)
+        run_payload = self._wait_for_run_status(project_id, run_id, "succeeded")
         self.assertEqual(run_payload["run"]["id"], run_id)
+        self.assertEqual(run_payload["run"]["status"], "succeeded")
 
-        result_status, result_payload = request_json("GET", f"{self.base_url}/api/projects/{project_id}/result")
-        self.assertEqual(result_status, 200)
-        self.assertIsNone(result_payload["asset"])
+        result_payload = self._wait_for_result_asset(project_id)
+        self.assertIsNotNone(result_payload["asset"])
+        self.assertEqual(result_payload["asset"]["storageKey"], f"projects/{project_id}/runs/{run_id}/output.mp4")
 
         history_status, history_payload = request_json("GET", f"{self.base_url}/api/history")
         self.assertEqual(history_status, 200)
-        self.assertTrue(any(item["runId"] == run_id for item in history_payload["items"]))
+        matched_items = [item for item in history_payload["items"] if item["runId"] == run_id]
+        self.assertEqual(len(matched_items), 1)
+        self.assertEqual(matched_items[0]["status"], "succeeded")
 
     def test_http_api_returns_expected_errors_for_missing_or_mismatched_resources(self) -> None:
         missing_project_status, missing_project_payload = request_json(
@@ -176,7 +220,8 @@ class ApiMainFlowIntegrationTest(unittest.TestCase):
             f"{self.base_url}/api/projects/proj_missing",
         )
         self.assertEqual(missing_project_status, 404)
-        self.assertEqual(missing_project_payload["detail"], "project not found")
+        self.assertEqual(missing_project_payload["detail"]["message"], "project not found")
+        self.assertEqual(missing_project_payload["detail"]["errorCode"], "project_not_found")
 
         project_id, _ = self._create_project(
             title="HTTP 异常测试项目",
@@ -195,7 +240,8 @@ class ApiMainFlowIntegrationTest(unittest.TestCase):
             },
         )
         self.assertEqual(render_status, 400)
-        self.assertEqual(render_payload["detail"], "project id mismatch")
+        self.assertEqual(render_payload["detail"]["message"], "project id mismatch")
+        self.assertEqual(render_payload["detail"]["errorCode"], "project_id_mismatch")
 
     def test_http_api_returns_not_found_for_missing_run_and_missing_result_project(self) -> None:
         project_id, _ = self._create_project(
@@ -208,14 +254,16 @@ class ApiMainFlowIntegrationTest(unittest.TestCase):
             f"{self.base_url}/api/projects/{project_id}/runs/run_missing",
         )
         self.assertEqual(missing_run_status, 404)
-        self.assertEqual(missing_run_payload["detail"], "run not found")
+        self.assertEqual(missing_run_payload["detail"]["message"], "run not found")
+        self.assertEqual(missing_run_payload["detail"]["errorCode"], "run_not_found")
 
         missing_result_status, missing_result_payload = request_json(
             "GET",
             f"{self.base_url}/api/projects/proj_missing/result",
         )
         self.assertEqual(missing_result_status, 404)
-        self.assertEqual(missing_result_payload["detail"], "project not found")
+        self.assertEqual(missing_result_payload["detail"]["message"], "project not found")
+        self.assertEqual(missing_result_payload["detail"]["errorCode"], "project_not_found")
 
     def test_http_api_returns_not_found_when_workflow_draft_does_not_belong_to_project(self) -> None:
         project_a_id, _ = self._create_project(
@@ -239,7 +287,8 @@ class ApiMainFlowIntegrationTest(unittest.TestCase):
             },
         )
         self.assertEqual(render_status, 404)
-        self.assertEqual(render_payload["detail"], "project or workflow not found")
+        self.assertEqual(render_payload["detail"]["message"], "project or workflow not found")
+        self.assertEqual(render_payload["detail"]["errorCode"], "project_or_workflow_not_found")
 
     def test_http_api_history_supports_limit_query(self) -> None:
         project_id, _ = self._create_project(
@@ -269,4 +318,5 @@ class ApiMainFlowIntegrationTest(unittest.TestCase):
     def test_http_api_history_rejects_invalid_limit(self) -> None:
         history_status, history_payload = request_json("GET", f"{self.base_url}/api/history?limit=0")
         self.assertEqual(history_status, 422)
-        self.assertEqual(history_payload["detail"][0]["loc"], ["query", "limit"])
+        self.assertEqual(history_payload["detail"]["errorCode"], "validation_error")
+        self.assertEqual(history_payload["detail"]["validationErrors"][0]["loc"], ["query", "limit"])

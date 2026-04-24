@@ -1,6 +1,6 @@
 # 全新项目 本地开发运行手册
 
-更新日期：2026-04-23
+更新日期：2026-04-24
 状态：Draft v0.1
 
 关联文档：
@@ -103,6 +103,14 @@ pnpm verify
 - `python3 -m compileall services/api services/worker`
 - `pnpm test:api`
 
+说明：
+
+- `pnpm verify` 当前还不包含浏览器 E2E
+- 原因不是它不重要，而是浏览器验收更慢，更适合作为单独一轮“真页面回归”
+- 小白版解释：
+  - `verify` 像快速质检
+  - `test:e2e` 像开真车跑一圈
+
 ### 4.5 worktree 环境补齐
 
 如果你在并行开发里新开了一个 worktree，推荐立刻执行：
@@ -146,6 +154,8 @@ pnpm test:api:migrations
 - 覆盖 repository 直连链路
 - 覆盖 HTTP API 对外链路
 - 覆盖基础异常返回契约（如 `404` / `400`）
+- 覆盖 `x-request-id` / `x-trace-id` 响应头
+- 覆盖结构化错误返回字段：`message` / `errorCode` / `requestId` / `traceId`
 - 覆盖 migration smoke
 
 说明：
@@ -153,6 +163,42 @@ pnpm test:api:migrations
 - 这条测试已经走真实 SQLite 持久化
 - 现在它已经并入仓库默认 `pnpm verify`
 - 这意味着主链已经进入统一自动验收
+
+### 4.7 安装浏览器验收依赖
+
+第一次跑页面级 E2E 前，先安装 Playwright 的浏览器：
+
+```bash
+pnpm test:e2e:install
+```
+
+小白版解释：
+
+- 这一步是在把“自动点页面的浏览器”装到本机
+- 不装的话，测试脚本知道要点哪里，但本地没有可用浏览器内核
+
+### 4.8 浏览器主链 E2E
+
+当前已经有第一条真实页面主链验收，可以直接运行：
+
+```bash
+pnpm test:e2e
+```
+
+这条测试当前会自动启动本地 API 和前端，再从用户视角完成：
+
+- 打开首页
+- 新建项目
+- 进入项目工作台
+- 触发 render run
+- 等待结果资产出现
+- 进入历史页
+
+说明：
+
+- 这条测试是“真浏览器走真页面”，不是只发 HTTP 请求
+- 当前它还没有并入 `pnpm verify`
+- 但只要本次改动影响主链页面、API 协作或运行状态流，就建议补跑一轮
 
 ## 5. 开发中的默认约束
 
@@ -174,4 +220,5 @@ pnpm test:api:migrations
 
 - Python 运行时依赖的安装方式仍是骨架阶段方案
 - 真实数据库、真实任务队列和真实对象存储尚未接入
-- CI 已接入第一条主链集成测试，但还没有进入完整测试分层
+- 浏览器 E2E 已有第一条主链，但还没有扩成完整页面回归套件
+- 可观测性第一版字段和错误契约已接入 API，但 dashboard / alerting 平台还没接上

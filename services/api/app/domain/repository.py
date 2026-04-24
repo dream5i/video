@@ -1,17 +1,19 @@
 from __future__ import annotations
 
-from functools import lru_cache
+from threading import Lock
 
 from app.config import get_api_settings
 from app.domain.interfaces import ProjectRepository
 from app.domain.scaffold import (
     build_analysis_output,
-    build_run_steps,
+    build_output_asset_summary,
+    build_render_run_steps,
     build_workflow_from_analysis,
     default_trace_context,
     make_id,
     utc_now,
 )
+from app.observability import log_event
 from app.providers.registry import ProviderConfig
 from app.schemas import (
     AnalysisInsight,
@@ -127,6 +129,14 @@ class InMemoryProjectRepository(ProjectRepository):
             completed=True,
         )
 
+    def _trace_for_project(self, project: ProjectDetail, trace_id: str | None = None) -> TraceContext:
+        return TraceContext(
+            trace_id=trace_id or make_id("trace"),
+            request_id=make_id("req"),
+            actor_id=project.owner_id,
+            org_id=project.org_id,
+        )
+
     def create_project(self, payload: CreateProjectRequest) -> ProjectDetailResponse:
         trace = payload.trace or default_trace_context()
         now = utc_now()
@@ -150,12 +160,17 @@ class InMemoryProjectRepository(ProjectRepository):
     def get_project(self, project_id: str) -> ProjectDetailResponse:
         return ProjectDetailResponse(project=self.projects[project_id])
 
-    def _ensure_analysis(self, project_id: str, provider: ProviderConfig) -> AnalysisRunSummary:
+    def _ensure_analysis(
+        self,
+        project_id: str,
+        provider: ProviderConfig,
+        trace: TraceContext | None = None,
+    ) -> AnalysisRunSummary:
         project = self.projects[project_id]
         if project.latest_analysis_run_id and project.latest_analysis_run_id in self.analysis_runs:
             return self.analysis_runs[project.latest_analysis_run_id]
 
-        trace = default_trace_context()
+        trace = trace or default_trace_context()
         now = utc_now()
         run = AnalysisRunSummary(
             id=make_id("analysis"),
@@ -180,12 +195,17 @@ class InMemoryProjectRepository(ProjectRepository):
         self._record_audit("run", "analysis.completed", trace, project_id=project_id, run_id=run.id, metadata={"provider": provider.primary})
         return run
 
-    def get_analysis(self, project_id: str, provider: ProviderConfig) -> AnalysisResultResponse:
-        run = self._ensure_analysis(project_id, provider)
+    def get_analysis(
+        self,
+        project_id: str,
+        provider: ProviderConfig,
+        trace: TraceContext | None = None,
+    ) -> AnalysisResultResponse:
+        run = self._ensure_analysis(project_id, provider, trace=trace)
         output = self.analysis_outputs[project_id]
         return AnalysisResultResponse(run=run, source_summary=output.source_summary, insights=output.insights)
 
-    def _ensure_workflow(self, project_id: str) -> WorkflowDraft:
+    def _ensure_workflow(self, project_id: str, trace: TraceContext | None = None) -> WorkflowDraft:
         project = self.projects[project_id]
         if project.latest_workflow_draft_id and project.latest_workflow_draft_id in self.workflow_drafts:
             return self.workflow_drafts[project.latest_workflow_draft_id]
@@ -197,12 +217,23 @@ class InMemoryProjectRepository(ProjectRepository):
         project.current_stage = "workflow_ready"
         project.updated_at = workflow.updated_at
         self.projects[project_id] = project
-        self._record_audit("run", "workflow.prefilled", default_trace_context(), project_id=project_id, metadata={"workflowVersion": workflow.version})
+        self._record_audit(
+            "run",
+            "workflow.prefilled",
+            trace or default_trace_context(),
+            project_id=project_id,
+            metadata={"workflowVersion": workflow.version},
+        )
         return workflow
 
-    def get_workflow(self, project_id: str, provider: ProviderConfig) -> WorkflowDraftResponse:
-        self._ensure_analysis(project_id, provider)
-        workflow = self._ensure_workflow(project_id)
+    def get_workflow(
+        self,
+        project_id: str,
+        provider: ProviderConfig,
+        trace: TraceContext | None = None,
+    ) -> WorkflowDraftResponse:
+        self._ensure_analysis(project_id, provider, trace=trace)
+        workflow = self._ensure_workflow(project_id, trace=trace)
         return WorkflowDraftResponse(workflow=workflow)
 
     def _create_render_run(
@@ -220,6 +251,7 @@ class InMemoryProjectRepository(ProjectRepository):
         now = utc_now()
         status = "succeeded" if completed else "queued"
         completed_at = now if completed else None
+        usage = MoneyUsage(input_tokens=120, output_tokens=0, estimated_cost_usd=0.18 if completed else 0.0)
         run = RenderRunSummary(
             id=make_id("render"),
             project_id=payload.project_id,
@@ -227,12 +259,17 @@ class InMemoryProjectRepository(ProjectRepository):
             status=status,
             provider=provider.primary,
             trace_id=trace.trace_id,
-            usage=MoneyUsage(input_tokens=120, output_tokens=0, estimated_cost_usd=0.18 if completed else 0.0),
+            usage=usage,
             created_at=now,
             completed_at=completed_at,
             error_message=None,
         )
-        steps = build_run_steps(provider.primary, status)
+        steps = build_render_run_steps(
+            provider.primary,
+            status,
+            started_at=now if completed else None,
+            finished_at=completed_at,
+        )
         self.render_runs[run.id] = run
         self.run_steps[run.id] = steps
         project.latest_render_run_id = run.id
@@ -240,17 +277,128 @@ class InMemoryProjectRepository(ProjectRepository):
         project.updated_at = now
         self.projects[payload.project_id] = project
         if completed:
-            self.output_assets[payload.project_id] = OutputAssetSummary(
-                id=make_id("asset"),
-                asset_type="video",
-                storage_key=f"projects/{payload.project_id}/outputs/demo.mp4",
-                preview_storage_key=f"projects/{payload.project_id}/outputs/demo-cover.jpg",
-            )
+            self.output_assets[run.id] = build_output_asset_summary(payload.project_id, run.id)
         self._record_audit("run", "render.created", trace, project_id=payload.project_id, run_id=run.id, metadata={"provider": provider.primary, "completed": completed})
         return RenderRunDetailResponse(run=run, steps=steps)
 
     def create_render_run(self, payload: CreateRenderRunRequest, provider: ProviderConfig) -> RenderRunDetailResponse:
-        return self._create_render_run(payload, provider, completed=False)
+        response = self._create_render_run(payload, provider, completed=False)
+        log_event(
+            "run.step.snapshot",
+            trace_id=response.run.trace_id,
+            project_id=payload.project_id,
+            run_id=response.run.id,
+            run_status=response.run.status,
+            step_statuses={step.name: step.status for step in response.steps},
+        )
+        return response
+
+    def process_render_run(self, project_id: str, run_id: str, provider: ProviderConfig) -> RenderRunDetailResponse:
+        project = self.projects[project_id]
+        run = self.render_runs[run_id]
+        if run.project_id != project_id:
+            raise KeyError(run_id)
+        if run.status == "failed":
+            return self.get_run_detail(project_id, run_id)
+        if run.status == "succeeded":
+            if run_id not in self.output_assets:
+                self.output_assets[run_id] = build_output_asset_summary(project_id, run_id)
+            return self.get_run_detail(project_id, run_id)
+
+        finished_at = utc_now()
+        self.render_runs[run_id] = run.model_copy(
+            update={
+                "status": "succeeded",
+                "completed_at": finished_at,
+                "error_message": None,
+                "usage": MoneyUsage(input_tokens=120, output_tokens=0, estimated_cost_usd=0.18),
+            }
+        )
+        self.run_steps[run_id] = build_render_run_steps(
+            provider.primary,
+            "succeeded",
+            started_at=run.created_at,
+            finished_at=finished_at,
+        )
+        self.output_assets[run_id] = build_output_asset_summary(project_id, run_id)
+
+        if project.latest_render_run_id == run_id:
+            project.current_stage = "result_ready"
+            project.updated_at = finished_at
+            self.projects[project_id] = project
+
+        self._record_audit(
+            "run",
+            "render.completed",
+            self._trace_for_project(project, run.trace_id),
+            project_id=project_id,
+            run_id=run_id,
+            metadata={"provider": provider.primary},
+        )
+        log_event(
+            "run.step.snapshot",
+            trace_id=run.trace_id,
+            project_id=project_id,
+            run_id=run_id,
+            run_status="succeeded",
+            step_statuses={step.name: step.status for step in self.run_steps[run_id]},
+        )
+        return self.get_run_detail(project_id, run_id)
+
+    def fail_render_run(
+        self,
+        project_id: str,
+        run_id: str,
+        provider: ProviderConfig,
+        error_message: str,
+    ) -> RenderRunDetailResponse:
+        project = self.projects[project_id]
+        run = self.render_runs[run_id]
+        if run.project_id != project_id:
+            raise KeyError(run_id)
+        if run.status == "succeeded":
+            return self.get_run_detail(project_id, run_id)
+
+        finished_at = utc_now()
+        self.render_runs[run_id] = run.model_copy(
+            update={
+                "status": "failed",
+                "completed_at": finished_at,
+                "error_message": error_message,
+                "usage": MoneyUsage(input_tokens=120, output_tokens=0, estimated_cost_usd=0.0),
+            }
+        )
+        self.run_steps[run_id] = build_render_run_steps(
+            provider.primary,
+            "failed",
+            started_at=run.created_at,
+            finished_at=finished_at,
+            error_message=error_message,
+        )
+
+        if project.latest_render_run_id == run_id:
+            project.current_stage = "failed"
+            project.updated_at = finished_at
+            self.projects[project_id] = project
+
+        self._record_audit(
+            "run",
+            "render.failed",
+            self._trace_for_project(project, run.trace_id),
+            project_id=project_id,
+            run_id=run_id,
+            metadata={"provider": provider.primary, "errorMessage": error_message},
+        )
+        log_event(
+            "run.step.snapshot",
+            trace_id=run.trace_id,
+            project_id=project_id,
+            run_id=run_id,
+            run_status="failed",
+            step_statuses={step.name: step.status for step in self.run_steps[run_id]},
+            error_message=error_message,
+        )
+        return self.get_run_detail(project_id, run_id)
 
     def get_run_detail(self, project_id: str, run_id: str) -> RenderRunDetailResponse:
         run = self.render_runs[run_id]
@@ -259,9 +407,12 @@ class InMemoryProjectRepository(ProjectRepository):
         return RenderRunDetailResponse(run=run, steps=self.run_steps[run_id])
 
     def get_result(self, project_id: str) -> OutputAssetSummary | None:
-        if project_id not in self.projects:
+        project = self.projects.get(project_id)
+        if project is None:
             raise KeyError(project_id)
-        return self.output_assets.get(project_id)
+        if project.latest_render_run_id is None:
+            return None
+        return self.output_assets.get(project.latest_render_run_id)
 
     def get_history(self, limit: int | None = None) -> ProjectHistoryResponse:
         items = [
@@ -291,10 +442,24 @@ def build_project_repository() -> ProjectRepository:
     raise ValueError(f"Unsupported repository backend: {backend}")
 
 
-@lru_cache(maxsize=1)
+_repository_instance: ProjectRepository | None = None
+_repository_lock = Lock()
+
+
 def get_project_repository() -> ProjectRepository:
-    return build_project_repository()
+    global _repository_instance
+
+    if _repository_instance is not None:
+        return _repository_instance
+
+    with _repository_lock:
+        if _repository_instance is None:
+            _repository_instance = build_project_repository()
+        return _repository_instance
 
 
 def reset_project_repository() -> None:
-    get_project_repository.cache_clear()
+    global _repository_instance
+
+    with _repository_lock:
+        _repository_instance = None

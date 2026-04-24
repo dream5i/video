@@ -1,6 +1,6 @@
 # 全新项目 文档索引
 
-更新日期：2026-04-23
+更新日期：2026-04-24
 状态：Draft v0.1
 
 ## 1. 这份文档解决什么问题
@@ -30,32 +30,46 @@
 ### Step 2：再看结构和边界
 
 4. [information-architecture-and-page-wireframes.md](./information-architecture-and-page-wireframes.md)
-5. [technical-architecture-draft.md](./technical-architecture-draft.md)
-6. [boundary-reuse-and-provider-strategy.md](./boundary-reuse-and-provider-strategy.md)
-7. [schema-and-contract-freeze.md](./schema-and-contract-freeze.md)
+5. [enterprise-architecture-spec.md](./enterprise-architecture-spec.md)
+6. [technical-architecture-draft.md](./technical-architecture-draft.md)
+7. [boundary-reuse-and-provider-strategy.md](./boundary-reuse-and-provider-strategy.md)
+8. [frontend-shell-reuse-checklist.md](./frontend-shell-reuse-checklist.md)
+9. [schema-and-contract-freeze.md](./schema-and-contract-freeze.md)
 
 ### Step 3：再看怎么实施
 
-8. [implementation-foundation-plan.md](./implementation-foundation-plan.md)
-9. [implementation-roadmap.md](./implementation-roadmap.md)
-10. [build-governance-and-agent-operating-model.md](./build-governance-and-agent-operating-model.md)
-11. [local-development-runbook.md](./local-development-runbook.md)
-12. [worktree-and-branching-runbook.md](./worktree-and-branching-runbook.md)
-13. [parallel-drill-first-wave.md](./parallel-drill-first-wave.md)
-14. [parallel-and-launch-gates.md](./parallel-and-launch-gates.md)
-15. [main-controller-reanchor-prompt.md](./main-controller-reanchor-prompt.md)
+10. [implementation-foundation-plan.md](./implementation-foundation-plan.md)
+11. [implementation-roadmap.md](./implementation-roadmap.md)
+12. [build-governance-and-agent-operating-model.md](./build-governance-and-agent-operating-model.md)
+13. [ownership-and-approval-matrix.md](./ownership-and-approval-matrix.md)
+14. [test-strategy-and-acceptance-matrix.md](./test-strategy-and-acceptance-matrix.md)
+15. [incident-response-and-escalation-matrix.md](./incident-response-and-escalation-matrix.md)
+16. [local-development-runbook.md](./local-development-runbook.md)
+17. [worktree-and-branching-runbook.md](./worktree-and-branching-runbook.md)
+18. [parallel-drill-first-wave.md](./parallel-drill-first-wave.md)
+19. [parallel-and-launch-gates.md](./parallel-and-launch-gates.md)
+20. [repo-ruleset-and-branch-protection-baseline.md](./repo-ruleset-and-branch-protection-baseline.md)
+21. [main-controller-reanchor-prompt.md](./main-controller-reanchor-prompt.md)
 
 ### Step 4：最后看企业与 AI 编程治理
 
-16. [database-persistence-and-migration-plan.md](./database-persistence-and-migration-plan.md)
-17. [release-checklist.md](./release-checklist.md)
-18. [rollback-runbook.md](./rollback-runbook.md)
-19. [enterprise-ai-readiness-assessment.md](./enterprise-ai-readiness-assessment.md)
-20. [enterprise-ai-coding-rules.md](./enterprise-ai-coding-rules.md)
-21. [enterprise-ai-coding-operating-playbook.md](./enterprise-ai-coding-operating-playbook.md)
-22. [security/ai-coding-policy-matrix.md](./security/ai-coding-policy-matrix.md)
-23. [security/do-not-feed-and-exclusion-list.md](./security/do-not-feed-and-exclusion-list.md)
-24. [review/high-risk-change-checklist.md](./review/high-risk-change-checklist.md)
+22. [database-persistence-and-migration-plan.md](./database-persistence-and-migration-plan.md)
+23. [data-lifecycle-and-recovery-baseline.md](./data-lifecycle-and-recovery-baseline.md)
+24. [environment-promotion-model.md](./environment-promotion-model.md)
+25. [nfr-and-slo-baseline.md](./nfr-and-slo-baseline.md)
+26. [observability-and-alerting-baseline.md](./observability-and-alerting-baseline.md)
+27. [release-checklist.md](./release-checklist.md)
+28. [rollback-runbook.md](./rollback-runbook.md)
+29. [project-build-readiness-assessment.md](./project-build-readiness-assessment.md)
+30. [enterprise-prebuild-alignment-gap-analysis.md](./enterprise-prebuild-alignment-gap-analysis.md)
+31. [enterprise-ai-readiness-assessment.md](./enterprise-ai-readiness-assessment.md)
+32. [enterprise-ai-coding-rules.md](./enterprise-ai-coding-rules.md)
+33. [enterprise-ai-coding-operating-playbook.md](./enterprise-ai-coding-operating-playbook.md)
+34. [security/ai-coding-policy-matrix.md](./security/ai-coding-policy-matrix.md)
+35. [security/do-not-feed-and-exclusion-list.md](./security/do-not-feed-and-exclusion-list.md)
+36. [security/threat-model-and-trust-boundaries.md](./security/threat-model-and-trust-boundaries.md)
+37. [security/dependency-and-license-gates.md](./security/dependency-and-license-gates.md)
+38. [review/high-risk-change-checklist.md](./review/high-risk-change-checklist.md)
 
 ## 3. Source Of Truth 映射
 
@@ -72,10 +86,14 @@
 
 - 主文档：
   - [information-architecture-and-page-wireframes.md](./information-architecture-and-page-wireframes.md)
+- 前端壳复用与组件来源：
+  - [frontend-shell-reuse-checklist.md](./frontend-shell-reuse-checklist.md)
 
 ### 技术架构
 
 - 主文档：
+  - [enterprise-architecture-spec.md](./enterprise-architecture-spec.md)
+- 背景方案稿：
   - [technical-architecture-draft.md](./technical-architecture-draft.md)
 - 边界辅助：
   - [boundary-reuse-and-provider-strategy.md](./boundary-reuse-and-provider-strategy.md)
@@ -91,6 +109,13 @@
 
 - 主文档：
   - [implementation-roadmap.md](./implementation-roadmap.md)
+- 所有权与审批：
+  - [ownership-and-approval-matrix.md](./ownership-and-approval-matrix.md)
+- 测试与事故治理：
+  - [test-strategy-and-acceptance-matrix.md](./test-strategy-and-acceptance-matrix.md)
+  - [incident-response-and-escalation-matrix.md](./incident-response-and-escalation-matrix.md)
+- 平台门禁：
+  - [repo-ruleset-and-branch-protection-baseline.md](./repo-ruleset-and-branch-protection-baseline.md)
 - 主控回锚点：
   - [main-controller-reanchor-prompt.md](./main-controller-reanchor-prompt.md)
 - 本地运行：
@@ -106,11 +131,21 @@
 
 - 主文档：
   - [enterprise-ai-coding-rules.md](./enterprise-ai-coding-rules.md)
+- 工程底线：
+  - [nfr-and-slo-baseline.md](./nfr-and-slo-baseline.md)
+  - [observability-and-alerting-baseline.md](./observability-and-alerting-baseline.md)
+- 数据与环境：
+  - [data-lifecycle-and-recovery-baseline.md](./data-lifecycle-and-recovery-baseline.md)
+  - [environment-promotion-model.md](./environment-promotion-model.md)
+- 企业级开工前对齐：
+  - [enterprise-prebuild-alignment-gap-analysis.md](./enterprise-prebuild-alignment-gap-analysis.md)
 - 操作手册：
   - [enterprise-ai-coding-operating-playbook.md](./enterprise-ai-coding-operating-playbook.md)
 - 权限和安全补充：
   - [security/ai-coding-policy-matrix.md](./security/ai-coding-policy-matrix.md)
   - [security/do-not-feed-and-exclusion-list.md](./security/do-not-feed-and-exclusion-list.md)
+  - [security/threat-model-and-trust-boundaries.md](./security/threat-model-and-trust-boundaries.md)
+  - [security/dependency-and-license-gates.md](./security/dependency-and-license-gates.md)
   - [review/high-risk-change-checklist.md](./review/high-risk-change-checklist.md)
 - 发布与回滚：
   - [release-checklist.md](./release-checklist.md)

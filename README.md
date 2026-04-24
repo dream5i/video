@@ -10,10 +10,11 @@
 
 - `packages/contracts`：共享 contract
 - `packages/workflow-schema`：workflow / low-code graph schema
-- `services/api`：最小 API 编排层，已具备内存仓库和数据库仓库双实现，当前默认走数据库
+- `services/api`：最小 API 编排层，已具备内存仓库和数据库仓库双实现，当前默认走数据库，并已接入 `request_id` / `trace_id` 与结构化错误返回
 - `services/worker`：provider / worker 骨架
 - `apps/web`：面向工作台的 Next.js 页面骨架
-- `tests/integration`：已覆盖数据库主链、HTTP API 主链与 migration smoke
+- `tests/integration`：已覆盖数据库主链、HTTP API 主链、结构化错误契约与 migration smoke
+- `tests/e2e`：已落下第一条真实浏览器主链验收，使用 Playwright 跑通“创建项目 -> 运行 -> 历史”
 
 当前可访问的前端路由：
 
@@ -29,6 +30,8 @@
 - `pnpm dev:worker`
 - `pnpm test:api`
 - `pnpm test:api:migrations`
+- `pnpm test:e2e:install`
+- `pnpm test:e2e`
 - `pnpm worktree:bootstrap -- .worktrees/<name>`
 - `pnpm worktree:drill:create`
 - `pnpm worktree:drill:cleanup`
@@ -71,4 +74,5 @@ docs/
 
 1. 继续把 persistence implementation 从“可用”推进到“更完整可维护”
 2. 把 API / Worker 的 stub 运行流继续替换成真实任务流
-3. 继续把集成测试从主链验证扩到更细的 API 场景、异常场景与 E2E
+3. 把第一条浏览器 E2E 扩成更多异常、回退和历史场景
+4. 把已接入的 trace / error 日志继续接到 dashboard、metrics 和 alerting

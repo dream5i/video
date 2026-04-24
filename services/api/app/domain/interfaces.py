@@ -11,6 +11,7 @@ from app.schemas import (
     ProjectDetailResponse,
     ProjectHistoryResponse,
     RenderRunDetailResponse,
+    TraceContext,
     WorkflowDraftResponse,
 )
 
@@ -20,11 +21,31 @@ class ProjectRepository(Protocol):
 
     def get_project(self, project_id: str) -> ProjectDetailResponse: ...
 
-    def get_analysis(self, project_id: str, provider: ProviderConfig) -> AnalysisResultResponse: ...
+    def get_analysis(
+        self,
+        project_id: str,
+        provider: ProviderConfig,
+        trace: TraceContext | None = None,
+    ) -> AnalysisResultResponse: ...
 
-    def get_workflow(self, project_id: str, provider: ProviderConfig) -> WorkflowDraftResponse: ...
+    def get_workflow(
+        self,
+        project_id: str,
+        provider: ProviderConfig,
+        trace: TraceContext | None = None,
+    ) -> WorkflowDraftResponse: ...
 
     def create_render_run(self, payload: CreateRenderRunRequest, provider: ProviderConfig) -> RenderRunDetailResponse: ...
+
+    def process_render_run(self, project_id: str, run_id: str, provider: ProviderConfig) -> RenderRunDetailResponse: ...
+
+    def fail_render_run(
+        self,
+        project_id: str,
+        run_id: str,
+        provider: ProviderConfig,
+        error_message: str,
+    ) -> RenderRunDetailResponse: ...
 
     def get_run_detail(self, project_id: str, run_id: str) -> RenderRunDetailResponse: ...
 

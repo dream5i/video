@@ -19,7 +19,8 @@ from app.db.session import get_engine, get_session_factory
 from app.domain.interfaces import ProjectRepository
 from app.domain.scaffold import (
     build_analysis_output,
-    build_run_steps,
+    build_output_asset_summary,
+    build_render_run_steps,
     build_workflow_from_analysis,
     default_trace_context,
     make_id,
@@ -27,6 +28,7 @@ from app.domain.scaffold import (
     to_iso_datetime,
     utc_now_datetime,
 )
+from app.observability import log_event
 from app.providers.registry import ProviderConfig
 from app.schemas import (
     AnalysisOutput,
@@ -247,16 +249,56 @@ class SqlProjectRepository(ProjectRepository):
             preview_storage_key=record.preview_storage_key,
         )
 
+    def _trace_for_project(self, project: ProjectRecord, trace_id: str | None = None) -> TraceContext:
+        return TraceContext(
+            trace_id=trace_id or make_id("trace"),
+            request_id=make_id("req"),
+            actor_id=project.owner_id,
+            org_id=project.org_id,
+        )
+
     def _get_project_record_or_raise(self, session, project_id: str) -> ProjectRecord:
         project = session.get(ProjectRecord, project_id)
         if project is None:
             raise KeyError(project_id)
         return project
 
+    def _get_render_run_record_or_raise(self, session, project_id: str, run_id: str) -> RenderRunRecord:
+        run_record = session.get(RenderRunRecord, run_id)
+        if run_record is None or run_record.project_id != project_id:
+            raise KeyError(run_id)
+        return run_record
+
     def _first_or_none(self, session, statement: Select):
         return session.execute(statement).scalar_one_or_none()
 
-    def _ensure_analysis(self, session, project_id: str, provider: ProviderConfig) -> tuple[AnalysisRunRecord, AnalysisOutputRecord]:
+    def _get_render_step_records(self, session, run_id: str) -> list[RunStepRecord]:
+        return list(
+            session.execute(select(RunStepRecord).where(RunStepRecord.run_id == run_id).order_by(RunStepRecord.name)).scalars()
+        )
+
+    def _apply_render_step_updates(self, step_records: list[RunStepRecord], step_summaries: list[RunStepSummary]) -> None:
+        step_record_by_name = {record.name: record for record in step_records}
+        for step_summary in step_summaries:
+            step_record = step_record_by_name[step_summary.name]
+            step_record.status = step_summary.status
+            step_record.started_at = parse_iso_datetime(step_summary.started_at)
+            step_record.finished_at = parse_iso_datetime(step_summary.finished_at)
+            step_record.error_message = step_summary.error_message
+
+    def _render_detail_response(self, run_record: RenderRunRecord, step_records: list[RunStepRecord]) -> RenderRunDetailResponse:
+        return RenderRunDetailResponse(
+            run=self._render_run_to_summary(run_record),
+            steps=[self._run_step_to_summary(step_record) for step_record in step_records],
+        )
+
+    def _ensure_analysis(
+        self,
+        session,
+        project_id: str,
+        provider: ProviderConfig,
+        trace: TraceContext | None = None,
+    ) -> tuple[AnalysisRunRecord, AnalysisOutputRecord]:
         project = self._get_project_record_or_raise(session, project_id)
 
         if project.latest_analysis_run_id:
@@ -268,7 +310,7 @@ class SqlProjectRepository(ProjectRepository):
             if run_record is not None and output_record is not None:
                 return run_record, output_record
 
-        trace = default_trace_context()
+        trace = trace or default_trace_context()
         now = utc_now_datetime()
         usage = MoneyUsage(input_tokens=980, output_tokens=240, estimated_cost_usd=0.021)
         run_record = AnalysisRunRecord(
@@ -315,7 +357,7 @@ class SqlProjectRepository(ProjectRepository):
         session.flush()
         return run_record, output_record
 
-    def _ensure_workflow(self, session, project_id: str) -> WorkflowDraftRecord:
+    def _ensure_workflow(self, session, project_id: str, trace: TraceContext | None = None) -> WorkflowDraftRecord:
         project = self._get_project_record_or_raise(session, project_id)
 
         if project.latest_workflow_draft_id:
@@ -356,7 +398,7 @@ class SqlProjectRepository(ProjectRepository):
             session,
             "run",
             "workflow.prefilled",
-            default_trace_context(),
+            trace or default_trace_context(),
             project_id=project_id,
             metadata={"workflowVersion": workflow.version},
         )
@@ -396,7 +438,12 @@ class SqlProjectRepository(ProjectRepository):
         session.flush()
 
         step_records: list[RunStepRecord] = []
-        for step in build_run_steps(provider.primary, status):
+        for step in build_render_run_steps(
+            provider.primary,
+            status,
+            started_at=to_iso_datetime(now) if completed else None,
+            finished_at=to_iso_datetime(now) if completed else None,
+        ):
             step_record = RunStepRecord(
                 id=make_id("step"),
                 run_id=run_record.id,
@@ -418,14 +465,15 @@ class SqlProjectRepository(ProjectRepository):
         project.updated_at = now
 
         if completed:
+            asset_summary = build_output_asset_summary(payload.project_id, run_record.id)
             session.add(
                 OutputAssetRecord(
-                    id=make_id("asset"),
+                    id=asset_summary.id,
                     project_id=payload.project_id,
                     render_run_id=run_record.id,
-                    asset_type="video",
-                    storage_key=f"projects/{payload.project_id}/outputs/demo.mp4",
-                    preview_storage_key=f"projects/{payload.project_id}/outputs/demo-cover.jpg",
+                    asset_type=asset_summary.asset_type,
+                    storage_key=asset_summary.storage_key,
+                    preview_storage_key=asset_summary.preview_storage_key,
                     created_at=now,
                 )
             )
@@ -480,9 +528,14 @@ class SqlProjectRepository(ProjectRepository):
         with self._session_factory() as session:
             return ProjectDetailResponse(project=self._project_record_to_detail(self._get_project_record_or_raise(session, project_id)))
 
-    def get_analysis(self, project_id: str, provider: ProviderConfig) -> AnalysisResultResponse:
+    def get_analysis(
+        self,
+        project_id: str,
+        provider: ProviderConfig,
+        trace: TraceContext | None = None,
+    ) -> AnalysisResultResponse:
         with self._session_factory() as session:
-            run_record, output_record = self._ensure_analysis(session, project_id, provider)
+            run_record, output_record = self._ensure_analysis(session, project_id, provider, trace=trace)
             session.commit()
             output = self._analysis_output_to_schema(output_record)
             return AnalysisResultResponse(
@@ -491,10 +544,15 @@ class SqlProjectRepository(ProjectRepository):
                 insights=output.insights,
             )
 
-    def get_workflow(self, project_id: str, provider: ProviderConfig) -> WorkflowDraftResponse:
+    def get_workflow(
+        self,
+        project_id: str,
+        provider: ProviderConfig,
+        trace: TraceContext | None = None,
+    ) -> WorkflowDraftResponse:
         with self._session_factory() as session:
-            self._ensure_analysis(session, project_id, provider)
-            workflow_record = self._ensure_workflow(session, project_id)
+            self._ensure_analysis(session, project_id, provider, trace=trace)
+            workflow_record = self._ensure_workflow(session, project_id, trace=trace)
             session.commit()
             return WorkflowDraftResponse(workflow=self._workflow_record_to_schema(workflow_record))
 
@@ -502,27 +560,180 @@ class SqlProjectRepository(ProjectRepository):
         with self._session_factory() as session:
             response = self._create_render_run(session, payload, provider, completed=False)
             session.commit()
+            log_event(
+                "run.step.snapshot",
+                trace_id=response.run.trace_id,
+                project_id=payload.project_id,
+                run_id=response.run.id,
+                run_status=response.run.status,
+                step_statuses={step.name: step.status for step in response.steps},
+            )
             return response
+
+    def process_render_run(self, project_id: str, run_id: str, provider: ProviderConfig) -> RenderRunDetailResponse:
+        with self._session_factory() as session:
+            project = self._get_project_record_or_raise(session, project_id)
+            run_record = self._get_render_run_record_or_raise(session, project_id, run_id)
+            step_records = self._get_render_step_records(session, run_id)
+
+            if run_record.status == "failed":
+                return self._render_detail_response(run_record, step_records)
+
+            existing_asset_record = self._first_or_none(
+                session,
+                select(OutputAssetRecord).where(OutputAssetRecord.render_run_id == run_id),
+            )
+
+            if run_record.status == "succeeded":
+                if existing_asset_record is None:
+                    asset_summary = build_output_asset_summary(project_id, run_id)
+                    session.add(
+                        OutputAssetRecord(
+                            id=asset_summary.id,
+                            project_id=project_id,
+                            render_run_id=run_id,
+                            asset_type=asset_summary.asset_type,
+                            storage_key=asset_summary.storage_key,
+                            preview_storage_key=asset_summary.preview_storage_key,
+                            created_at=run_record.completed_at or utc_now_datetime(),
+                        )
+                    )
+                    session.commit()
+                return self._render_detail_response(run_record, step_records)
+
+            finished_at = utc_now_datetime()
+            run_record.status = "succeeded"
+            run_record.completed_at = finished_at
+            run_record.error_message = None
+            run_record.usage_json = MoneyUsage(
+                input_tokens=120,
+                output_tokens=0,
+                estimated_cost_usd=0.18,
+            ).model_dump(mode="json")
+            self._apply_render_step_updates(
+                step_records,
+                build_render_run_steps(
+                    provider.primary,
+                    "succeeded",
+                    started_at=to_iso_datetime(run_record.created_at),
+                    finished_at=to_iso_datetime(finished_at),
+                ),
+            )
+
+            if existing_asset_record is None:
+                asset_summary = build_output_asset_summary(project_id, run_id)
+                session.add(
+                    OutputAssetRecord(
+                        id=asset_summary.id,
+                        project_id=project_id,
+                        render_run_id=run_id,
+                        asset_type=asset_summary.asset_type,
+                        storage_key=asset_summary.storage_key,
+                        preview_storage_key=asset_summary.preview_storage_key,
+                        created_at=finished_at,
+                    )
+                )
+
+            if project.latest_render_run_id == run_id:
+                project.current_stage = "result_ready"
+                project.updated_at = finished_at
+
+            self._record_audit(
+                session,
+                "run",
+                "render.completed",
+                self._trace_for_project(project, run_record.trace_id),
+                project_id=project_id,
+                run_id=run_id,
+                metadata={"provider": provider.primary},
+            )
+            session.commit()
+            log_event(
+                "run.step.snapshot",
+                trace_id=run_record.trace_id,
+                project_id=project_id,
+                run_id=run_id,
+                run_status="succeeded",
+                step_statuses={step.name: step.status for step in self._render_detail_response(run_record, step_records).steps},
+            )
+            return self._render_detail_response(run_record, step_records)
+
+    def fail_render_run(
+        self,
+        project_id: str,
+        run_id: str,
+        provider: ProviderConfig,
+        error_message: str,
+    ) -> RenderRunDetailResponse:
+        with self._session_factory() as session:
+            project = self._get_project_record_or_raise(session, project_id)
+            run_record = self._get_render_run_record_or_raise(session, project_id, run_id)
+            step_records = self._get_render_step_records(session, run_id)
+
+            if run_record.status == "succeeded":
+                return self._render_detail_response(run_record, step_records)
+
+            finished_at = utc_now_datetime()
+            run_record.status = "failed"
+            run_record.completed_at = finished_at
+            run_record.error_message = error_message
+            run_record.usage_json = MoneyUsage(
+                input_tokens=120,
+                output_tokens=0,
+                estimated_cost_usd=0.0,
+            ).model_dump(mode="json")
+            self._apply_render_step_updates(
+                step_records,
+                build_render_run_steps(
+                    provider.primary,
+                    "failed",
+                    started_at=to_iso_datetime(run_record.created_at),
+                    finished_at=to_iso_datetime(finished_at),
+                    error_message=error_message,
+                ),
+            )
+
+            if project.latest_render_run_id == run_id:
+                project.current_stage = "failed"
+                project.updated_at = finished_at
+
+            self._record_audit(
+                session,
+                "run",
+                "render.failed",
+                self._trace_for_project(project, run_record.trace_id),
+                project_id=project_id,
+                run_id=run_id,
+                metadata={"provider": provider.primary, "errorMessage": error_message},
+            )
+            session.commit()
+            log_event(
+                "run.step.snapshot",
+                trace_id=run_record.trace_id,
+                project_id=project_id,
+                run_id=run_id,
+                run_status="failed",
+                step_statuses={step.name: step.status for step in self._render_detail_response(run_record, step_records).steps},
+                error_message=error_message,
+            )
+            return self._render_detail_response(run_record, step_records)
 
     def get_run_detail(self, project_id: str, run_id: str) -> RenderRunDetailResponse:
         with self._session_factory() as session:
-            run_record = session.get(RenderRunRecord, run_id)
-            if run_record is None or run_record.project_id != project_id:
-                raise KeyError(run_id)
-            step_records = list(
-                session.execute(select(RunStepRecord).where(RunStepRecord.run_id == run_id).order_by(RunStepRecord.name)).scalars()
-            )
-            return RenderRunDetailResponse(
-                run=self._render_run_to_summary(run_record),
-                steps=[self._run_step_to_summary(step_record) for step_record in step_records],
-            )
+            run_record = self._get_render_run_record_or_raise(session, project_id, run_id)
+            step_records = self._get_render_step_records(session, run_id)
+            return self._render_detail_response(run_record, step_records)
 
     def get_result(self, project_id: str) -> OutputAssetSummary | None:
         with self._session_factory() as session:
-            self._get_project_record_or_raise(session, project_id)
+            project = self._get_project_record_or_raise(session, project_id)
+            if project.latest_render_run_id is None:
+                return None
             asset_record = self._first_or_none(
                 session,
-                select(OutputAssetRecord).where(OutputAssetRecord.project_id == project_id).order_by(desc(OutputAssetRecord.created_at)),
+                select(OutputAssetRecord)
+                .where(OutputAssetRecord.render_run_id == project.latest_render_run_id)
+                .order_by(desc(OutputAssetRecord.created_at)),
             )
             if asset_record is None:
                 return None
