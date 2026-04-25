@@ -53,15 +53,26 @@
 - 页面已展示主链健康、异步任务、provider、失败热点和接线状态信号
 - integration 测试已覆盖可观测性汇总接口和响应头
 
+截至 `2026-04-25`，第三批“worker / provider trace 基线”已经落下：
+
+- worker 侧新增 provider trace 模块：`services/worker/worker/observability.py`
+- analysis provider 调用会记录 `provider.call.started`
+- analysis provider 成功会记录 `provider.call.completed`
+- analysis provider 失败会记录 `provider.call.failed`
+- trace 字段包含 `request_id`、`trace_id`、`project_id`、`analysis_run_id`、`run_step_id`、`provider`、`capability`、`model_name`、`status`、`latency_ms`、`retry_count`、`estimated_cost_usd`、`error_code`
+- integration 测试已覆盖成功和失败日志事件
+
 小白版解释：
 
 - 这相当于我们先把“每个工单的编号”和“出错时的统一报错格式”接上了
 - 这样后面排查问题，不至于每次都像在黑屋里摸
 - 现在又加了一块“内部仪表盘”，不用先上外部平台，也能看见主链是否健康
+- 后台 worker 调外部 provider 时，也开始带上“工牌”和“耗时记录”
 
 当前还没完成的部分：
 
-- worker / provider 侧 trace 还没完全打通
+- API 到 worker 的真实异步任务链路还没完全打通
+- provider trace 还没接到外部 trace / metrics 平台
 - 外部 metrics / alerting 平台还没接上
 - 还没有做真正的告警演练
 
@@ -125,6 +136,17 @@
 - 重试
 - 降级
 - provider 调用结果摘要
+
+当前已落第一版：
+
+- analysis provider started / completed / failed
+- provider 名称
+- capability
+- model_name
+- prompt_version
+- latency_ms
+- estimated_cost_usd
+- error_code
 
 ## 4.4 安全与治理事件
 

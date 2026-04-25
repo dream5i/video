@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+from worker.observability import configure_logging
 from worker.providers.registry import provider_registry
 from worker.providers.interfaces import AnalysisProviderRequest, ProviderExecutionContext
 
 
 def run_demo_analysis(project_id: str) -> dict:
+    configure_logging()
     request = AnalysisProviderRequest(
         project_id=project_id,
         source_type="video_url",
@@ -15,6 +17,8 @@ def run_demo_analysis(project_id: str) -> dict:
             request_id="req_demo",
             actor_id="user_demo",
             org_id="org_demo",
+            run_id="analysis_demo",
+            run_step_id="analysis_step_demo",
         ),
     )
     return provider_registry.analysis_primary.generate(request).__dict__

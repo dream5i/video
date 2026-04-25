@@ -79,8 +79,8 @@ def _build_signals(step_snapshot_evidence: str) -> list[ObservabilitySignal]:
             id="worker-provider-trace",
             label="Worker / Provider trace",
             status="partial",
-            detail="当前已有 provider 抽象和 run trace，但 worker/provider 侧还没完整串到外部追踪平台。",
-            evidence="docs/observability-and-alerting-baseline.md",
+            detail="worker analysis provider 已有 started/completed/failed 结构化 trace；真实外部平台和 API-to-worker 链路仍待打通。",
+            evidence="services/worker/worker/observability.py",
         ),
         ObservabilitySignal(
             id="external-alerting",
