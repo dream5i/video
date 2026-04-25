@@ -1,12 +1,13 @@
 # 全新项目 大并行与上线门槛
 
-更新日期：2026-04-23
+更新日期：2026-04-25
 状态：Draft v0.1
 
 关联文档：
 
 - [全新项目 实施路线图](./implementation-roadmap.md)
 - [全新项目 项目搭建就绪度评估](./project-build-readiness-assessment.md)
+- [全新项目 版本门槛证据总表](./version-gate-evidence-ledger.md)
 - [全新项目 Worktree 与分支治理手册](./worktree-and-branching-runbook.md)
 - [全新项目 发布前检查清单](./release-checklist.md)
 - [全新项目 回滚 Runbook](./rollback-runbook.md)

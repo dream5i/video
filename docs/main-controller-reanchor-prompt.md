@@ -1,6 +1,6 @@
 # 全新项目 回主控提示词
 
-更新日期：2026-04-24
+更新日期：2026-04-25
 状态：Active
 
 ## 1. 触发口令
@@ -62,14 +62,16 @@
 2. [AGENTS.md](../AGENTS.md)
 3. [README.md](../README.md)
 4. [main-flow-diagram.md](./main-flow-diagram.md)
-5. [build-governance-and-agent-operating-model.md](./build-governance-and-agent-operating-model.md)
-6. [implementation-roadmap.md](./implementation-roadmap.md)
-7. [worktree-and-branching-runbook.md](./worktree-and-branching-runbook.md)
+5. [adr/README.md](./adr/README.md)
+6. [version-gate-evidence-ledger.md](./version-gate-evidence-ledger.md)
+7. [build-governance-and-agent-operating-model.md](./build-governance-and-agent-operating-model.md)
+8. [implementation-roadmap.md](./implementation-roadmap.md)
+9. [worktree-and-branching-runbook.md](./worktree-and-branching-runbook.md)
 
 如果是高风险改动，再补看：
 
-8. [review/high-risk-change-checklist.md](./review/high-risk-change-checklist.md)
-9. [schema-and-contract-freeze.md](./schema-and-contract-freeze.md)
+10. [review/high-risk-change-checklist.md](./review/high-risk-change-checklist.md)
+11. [schema-and-contract-freeze.md](./schema-and-contract-freeze.md)
 
 ## 5. 我对自己的硬约束
 
