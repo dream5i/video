@@ -53,30 +53,31 @@
 22. [worktree-and-branching-runbook.md](./worktree-and-branching-runbook.md)
 23. [parallel-drill-first-wave.md](./parallel-drill-first-wave.md)
 24. [parallel-and-launch-gates.md](./parallel-and-launch-gates.md)
-25. [repo-ruleset-and-branch-protection-baseline.md](./repo-ruleset-and-branch-protection-baseline.md)
-26. [github-platform-gates-rollout-checklist.md](./github-platform-gates-rollout-checklist.md)
-27. [main-controller-reanchor-prompt.md](./main-controller-reanchor-prompt.md)
+25. [version-gate-evidence-ledger.md](./version-gate-evidence-ledger.md)
+26. [repo-ruleset-and-branch-protection-baseline.md](./repo-ruleset-and-branch-protection-baseline.md)
+27. [github-platform-gates-rollout-checklist.md](./github-platform-gates-rollout-checklist.md)
+28. [main-controller-reanchor-prompt.md](./main-controller-reanchor-prompt.md)
 
 ### Step 4：最后看企业与 AI 编程治理
 
-28. [database-persistence-and-migration-plan.md](./database-persistence-and-migration-plan.md)
-29. [data-lifecycle-and-recovery-baseline.md](./data-lifecycle-and-recovery-baseline.md)
-30. [environment-promotion-model.md](./environment-promotion-model.md)
-31. [nfr-and-slo-baseline.md](./nfr-and-slo-baseline.md)
-32. [observability-and-alerting-baseline.md](./observability-and-alerting-baseline.md)
-33. [release-checklist.md](./release-checklist.md)
-34. [rollback-runbook.md](./rollback-runbook.md)
-35. [project-build-readiness-assessment.md](./project-build-readiness-assessment.md)
-36. [enterprise-prebuild-alignment-gap-analysis.md](./enterprise-prebuild-alignment-gap-analysis.md)
-37. [enterprise-alignment-gap-priority-matrix.md](./enterprise-alignment-gap-priority-matrix.md)
-38. [enterprise-ai-readiness-assessment.md](./enterprise-ai-readiness-assessment.md)
-39. [enterprise-ai-coding-rules.md](./enterprise-ai-coding-rules.md)
-40. [enterprise-ai-coding-operating-playbook.md](./enterprise-ai-coding-operating-playbook.md)
-41. [security/ai-coding-policy-matrix.md](./security/ai-coding-policy-matrix.md)
-42. [security/do-not-feed-and-exclusion-list.md](./security/do-not-feed-and-exclusion-list.md)
-43. [security/threat-model-and-trust-boundaries.md](./security/threat-model-and-trust-boundaries.md)
-44. [security/dependency-and-license-gates.md](./security/dependency-and-license-gates.md)
-45. [review/high-risk-change-checklist.md](./review/high-risk-change-checklist.md)
+29. [database-persistence-and-migration-plan.md](./database-persistence-and-migration-plan.md)
+30. [data-lifecycle-and-recovery-baseline.md](./data-lifecycle-and-recovery-baseline.md)
+31. [environment-promotion-model.md](./environment-promotion-model.md)
+32. [nfr-and-slo-baseline.md](./nfr-and-slo-baseline.md)
+33. [observability-and-alerting-baseline.md](./observability-and-alerting-baseline.md)
+34. [release-checklist.md](./release-checklist.md)
+35. [rollback-runbook.md](./rollback-runbook.md)
+36. [project-build-readiness-assessment.md](./project-build-readiness-assessment.md)
+37. [enterprise-prebuild-alignment-gap-analysis.md](./enterprise-prebuild-alignment-gap-analysis.md)
+38. [enterprise-alignment-gap-priority-matrix.md](./enterprise-alignment-gap-priority-matrix.md)
+39. [enterprise-ai-readiness-assessment.md](./enterprise-ai-readiness-assessment.md)
+40. [enterprise-ai-coding-rules.md](./enterprise-ai-coding-rules.md)
+41. [enterprise-ai-coding-operating-playbook.md](./enterprise-ai-coding-operating-playbook.md)
+42. [security/ai-coding-policy-matrix.md](./security/ai-coding-policy-matrix.md)
+43. [security/do-not-feed-and-exclusion-list.md](./security/do-not-feed-and-exclusion-list.md)
+44. [security/threat-model-and-trust-boundaries.md](./security/threat-model-and-trust-boundaries.md)
+45. [security/dependency-and-license-gates.md](./security/dependency-and-license-gates.md)
+46. [review/high-risk-change-checklist.md](./review/high-risk-change-checklist.md)
 
 ## 3. Source Of Truth 映射
 
@@ -130,6 +131,8 @@
 - 平台门禁：
   - [repo-ruleset-and-branch-protection-baseline.md](./repo-ruleset-and-branch-protection-baseline.md)
   - [github-platform-gates-rollout-checklist.md](./github-platform-gates-rollout-checklist.md)
+- 版本门槛证据：
+  - [version-gate-evidence-ledger.md](./version-gate-evidence-ledger.md)
 - 主控回锚点：
   - [main-controller-reanchor-prompt.md](./main-controller-reanchor-prompt.md)
 - 本地运行：

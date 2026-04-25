@@ -45,9 +45,10 @@
 2. [docs/main-flow-diagram.md](./docs/main-flow-diagram.md)
 3. [docs/implementation-roadmap.md](./docs/implementation-roadmap.md)
 4. [docs/project-build-readiness-assessment.md](./docs/project-build-readiness-assessment.md)
-5. [docs/local-development-runbook.md](./docs/local-development-runbook.md)
-6. [docs/parallel-drill-first-wave.md](./docs/parallel-drill-first-wave.md)
-7. [docs/parallel-and-launch-gates.md](./docs/parallel-and-launch-gates.md)
+5. [docs/version-gate-evidence-ledger.md](./docs/version-gate-evidence-ledger.md)
+6. [docs/local-development-runbook.md](./docs/local-development-runbook.md)
+7. [docs/parallel-drill-first-wave.md](./docs/parallel-drill-first-wave.md)
+8. [docs/parallel-and-launch-gates.md](./docs/parallel-and-launch-gates.md)
 
 ## 当前目录
 
