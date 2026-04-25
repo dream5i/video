@@ -107,7 +107,8 @@
 - `2026-04-25` 已完成第 `1` 项的第一版落地
 - `2026-04-25` 已完成第 `2` 项的第一批基线落地，新增 4 条关键 ADR
 - `2026-04-25` 已完成第 `3` 项的第一版落地，新增 [version-gate-evidence-ledger.md](./version-gate-evidence-ledger.md)
-- 当前下一项主控优先级已切到第 `4` 项：可观测性平台接线
+- `2026-04-25` 第 `4` 项已完成内部 dashboard 和 worker/provider trace 第一版，外部 metrics / alerting 与演练仍未完成
+- 当前下一项主控优先级切到真实任务链路补强，重点是 API-to-worker 异步链路和真实 provider 调用边界
 
 ## 5. 可后补项
 

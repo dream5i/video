@@ -10,6 +10,8 @@ class ProviderExecutionContext:
     request_id: str
     actor_id: str
     org_id: str
+    run_id: str | None = None
+    run_step_id: str | None = None
 
 
 @dataclass(frozen=True)

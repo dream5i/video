@@ -11,7 +11,7 @@
 - `packages/contracts`：共享 contract
 - `packages/workflow-schema`：workflow / low-code graph schema
 - `services/api`：最小 API 编排层，已具备内存仓库和数据库仓库双实现，当前默认走数据库，并已接入 `request_id` / `trace_id`、结构化错误返回与可观测性汇总接口
-- `services/worker`：provider / worker 骨架
+- `services/worker`：provider / worker 骨架，analysis provider 已接入 started / completed / failed 结构化 trace
 - `apps/web`：面向工作台的 Next.js 页面骨架
 - `tests/integration`：已覆盖数据库主链、HTTP API 主链、结构化错误契约与 migration smoke
 - `tests/e2e`：已落下第一条真实浏览器主链验收，使用 Playwright 跑通“创建项目 -> 运行 -> 历史”
@@ -77,4 +77,4 @@ docs/
 1. 继续把 persistence implementation 从“可用”推进到“更完整可维护”
 2. 把 API / Worker 的 stub 运行流继续替换成真实任务流
 3. 把第一条浏览器 E2E 扩成更多异常、回退和历史场景
-4. 把已接入的内部 observability 面板继续升级到外部 metrics、alerting 和 worker/provider trace
+4. 把 worker/provider trace 继续接到 API-to-worker 真实异步链路、外部 metrics 和 alerting
