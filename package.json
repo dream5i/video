@@ -18,6 +18,11 @@
     "verify:python": "python3 -m compileall services/api services/worker",
     "verify": "pnpm typecheck && pnpm build:web && pnpm verify:python && pnpm test:api"
   },
+  "pnpm": {
+    "overrides": {
+      "postcss": "8.5.10"
+    }
+  },
   "devDependencies": {
     "@playwright/test": "^1.59.1"
   }
