@@ -5,3 +5,4 @@ export * from "./analysis.js";
 export * from "./workflow.js";
 export * from "./run.js";
 export * from "./history.js";
+export * from "./observability.js";

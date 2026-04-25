@@ -4,6 +4,7 @@ from threading import Lock
 
 from app.config import get_api_settings
 from app.domain.interfaces import ProjectRepository
+from app.domain.observability_summary import ObservabilityRunSnapshot, build_observability_summary
 from app.domain.scaffold import (
     build_analysis_output,
     build_output_asset_summary,
@@ -25,6 +26,7 @@ from app.schemas import (
     CreateProjectRequest,
     CreateRenderRunRequest,
     MoneyUsage,
+    ObservabilitySummaryResponse,
     OutputAssetSummary,
     ProjectDetail,
     ProjectDetailResponse,
@@ -136,6 +138,10 @@ class InMemoryProjectRepository(ProjectRepository):
             actor_id=project.owner_id,
             org_id=project.org_id,
         )
+
+    def _project_title(self, project_id: str) -> str:
+        project = self.projects.get(project_id)
+        return project.title if project is not None else project_id
 
     def create_project(self, payload: CreateProjectRequest) -> ProjectDetailResponse:
         trace = payload.trace or default_trace_context()
@@ -429,6 +435,49 @@ class InMemoryProjectRepository(ProjectRepository):
         if limit is not None:
             items = items[:limit]
         return ProjectHistoryResponse(items=items)
+
+    def get_observability_summary(self) -> ObservabilitySummaryResponse:
+        analysis_runs = [
+            ObservabilityRunSnapshot(
+                id=run.id,
+                project_id=run.project_id,
+                project_title=self._project_title(run.project_id),
+                run_type="analysis",
+                status=run.status,
+                capability=run.capability,
+                provider=run.provider,
+                trace_id=run.trace_id,
+                usage=run.usage,
+                created_at=run.created_at,
+                completed_at=run.completed_at,
+                error_message=run.error_message,
+            )
+            for run in self.analysis_runs.values()
+        ]
+        render_runs = [
+            ObservabilityRunSnapshot(
+                id=run.id,
+                project_id=run.project_id,
+                project_title=self._project_title(run.project_id),
+                run_type="render",
+                status=run.status,
+                capability="render",
+                provider=run.provider,
+                trace_id=run.trace_id,
+                usage=run.usage,
+                created_at=run.created_at,
+                completed_at=run.completed_at,
+                error_message=run.error_message,
+            )
+            for run in self.render_runs.values()
+        ]
+        return build_observability_summary(
+            projects_total=len(self.projects),
+            workflow_drafts_total=len(self.workflow_drafts),
+            result_assets_total=len(self.output_assets),
+            runs=[*analysis_runs, *render_runs],
+            step_snapshot_evidence="services/api/app/domain/repository.py",
+        )
 
 
 def build_project_repository() -> ProjectRepository:

@@ -1,6 +1,6 @@
 # 全新项目 可观测性与告警基线
 
-更新日期：2026-04-24
+更新日期：2026-04-25
 状态：Active Baseline v0.1
 
 关联文档：
@@ -45,15 +45,24 @@
 - render run 的创建、完成、失败和 step 快照已有结构化日志
 - integration 测试已经覆盖关键响应头和错误契约
 
+截至 `2026-04-25`，第二批“内部可视化接线”已经落下：
+
+- 新增 `GET /api/observability/summary`
+- 新增共享 contract：`ObservabilitySummaryResponse`
+- 新增前端页面：`/observability`
+- 页面已展示主链健康、异步任务、provider、失败热点和接线状态信号
+- integration 测试已覆盖可观测性汇总接口和响应头
+
 小白版解释：
 
 - 这相当于我们先把“每个工单的编号”和“出错时的统一报错格式”接上了
 - 这样后面排查问题，不至于每次都像在黑屋里摸
+- 现在又加了一块“内部仪表盘”，不用先上外部平台，也能看见主链是否健康
 
 当前还没完成的部分：
 
 - worker / provider 侧 trace 还没完全打通
-- metrics、dashboard、alerting 平台还没接上
+- 外部 metrics / alerting 平台还没接上
 - 还没有做真正的告警演练
 
 ## 3. 必须统一的追踪字段
@@ -208,7 +217,7 @@
 
 - 就是不同角色最常看的“总览面板”
 
-当前至少要规划 4 张。
+当前至少规划 4 张；截至 `2026-04-25`，内部页面 `/observability` 已先覆盖前三类的最小版本。
 
 ### 8.1 主链健康面板
 
@@ -219,6 +228,15 @@
 - 生成成功率
 - 当前失败热点
 
+当前内部页面已覆盖：
+
+- 项目总数
+- analysis 成功率
+- render 成功率
+- workflow draft 数
+- result asset 数
+- 最近失败列表
+
 ### 8.2 异步任务面板
 
 看什么：
@@ -228,6 +246,14 @@
 - stuck run
 - retry 分布
 
+当前内部页面已覆盖：
+
+- queued run
+- running run
+- active run
+- stuck run 占位
+- 最近运行更新时间
+
 ### 8.3 Provider 面板
 
 看什么：
@@ -236,6 +262,14 @@
 - 各 provider 错误率
 - fallback 触发情况
 - 单次 run 成本异常
+
+当前内部页面已覆盖：
+
+- provider 调用量
+- provider 成功 / 失败量
+- 平均延迟占位或计算值
+- 估算成本
+- 最近事件时间
 
 ### 8.4 发布与风险面板
 
@@ -322,10 +356,10 @@
 - retry / fallback 指标
 - run 成本指标
 - stuck run 告警
+- 内部 dashboard 数据接口和页面持续完善
 
 ### 第三层：进入更正式交付前补
 
-- 仪表盘可视化
 - 外部 observability 平台集成
 - 审计事件统一导出
 - 告警分级和值班升级链

@@ -35,6 +35,12 @@ export function ShellNavigation() {
       label: "运行历史",
       kicker: "History",
       active: pathname === "/history"
+    },
+    {
+      href: "/observability",
+      label: "可观测性",
+      kicker: "Ops",
+      active: pathname === "/observability"
     }
   ];
 

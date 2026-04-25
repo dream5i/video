@@ -2,6 +2,7 @@ import type {
   AnalysisResultResponse,
   CreateProjectRequest,
   CreateRenderRunRequest,
+  ObservabilitySummaryResponse,
   ProjectDetailResponse,
   ProjectHistoryResponse,
   ProjectResultResponse,
@@ -94,6 +95,10 @@ export function getRenderRun(projectId: string, runId: string) {
 
 export function getHistory() {
   return safeRequest<ProjectHistoryResponse>("/api/history");
+}
+
+export function getObservabilitySummary() {
+  return safeRequest<ObservabilitySummaryResponse>("/api/observability/summary");
 }
 
 export function createProject(payload: CreateProjectRequest) {

@@ -254,6 +254,12 @@
 - step status
 - trace / request id
 
+当前进度：
+
+- `2026-04-25` 已新增内部 `/observability` 页面和 `GET /api/observability/summary`
+- 已能看到主链健康、异步任务、provider 摘要和失败热点
+- 但外部 metrics / alerting、告警演练、worker/provider 深度 trace 仍未达到上线准备标准
+
 #### 7. 发布清单和回滚 Runbook 进入可执行状态
 
 不是只有文档存在，而是：
