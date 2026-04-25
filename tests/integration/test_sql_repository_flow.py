@@ -99,6 +99,12 @@ class SqlRepositoryMainFlowIntegrationTest(unittest.TestCase):
         self.assertEqual(len(limited_history_response.items), 1)
         self.assertEqual(limited_history_response.items[0].run_id, render_response.run.id)
 
+        observability_summary = self.repository.get_observability_summary()
+        self.assertGreaterEqual(observability_summary.main_chain.projects_total, 2)
+        self.assertGreaterEqual(observability_summary.main_chain.render_runs_total, 2)
+        self.assertGreaterEqual(len(observability_summary.providers), 2)
+        self.assertTrue(any(signal.id == "api-trace-headers" and signal.status == "ok" for signal in observability_summary.signals))
+
     def test_database_repository_marks_failed_render_and_keeps_result_empty(self) -> None:
         create_response = self.repository.create_project(
             CreateProjectRequest(
@@ -141,3 +147,12 @@ class SqlRepositoryMainFlowIntegrationTest(unittest.TestCase):
         ]
         self.assertEqual(len(matching_items), 1)
         self.assertEqual(matching_items[0].status, "failed")
+
+        observability_summary = self.repository.get_observability_summary()
+        matching_failures = [
+            item
+            for item in observability_summary.recent_failures
+            if item.project_id == project_id and item.run_id == render_response.run.id
+        ]
+        self.assertEqual(len(matching_failures), 1)
+        self.assertEqual(matching_failures[0].error_code, "RENDER_ERROR")

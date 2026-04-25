@@ -37,3 +37,13 @@ test("user can create a project, run render, and see it in history", async ({ pa
   await expect(page.getByRole("heading", { name: "最近运行" })).toBeVisible();
   await expect(page.getByText(projectTitle)).toBeVisible();
 });
+
+test("operator can inspect the observability dashboard", async ({ page }) => {
+  await page.goto("/observability");
+
+  await expect(page.getByRole("heading", { name: "把系统状态变成主控可以看懂的仪表盘" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "主链健康" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "异步任务状态" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Provider 健康" })).toBeVisible();
+  await expect(page.getByText("API 请求追踪头")).toBeVisible();
+});

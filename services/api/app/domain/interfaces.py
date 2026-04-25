@@ -8,6 +8,7 @@ from app.schemas import (
     CreateProjectRequest,
     CreateRenderRunRequest,
     OutputAssetSummary,
+    ObservabilitySummaryResponse,
     ProjectDetailResponse,
     ProjectHistoryResponse,
     RenderRunDetailResponse,
@@ -52,3 +53,5 @@ class ProjectRepository(Protocol):
     def get_result(self, project_id: str) -> OutputAssetSummary | None: ...
 
     def get_history(self, limit: int | None = None) -> ProjectHistoryResponse: ...
+
+    def get_observability_summary(self) -> ObservabilitySummaryResponse: ...

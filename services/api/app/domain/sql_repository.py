@@ -17,6 +17,7 @@ from app.db.models import (
 )
 from app.db.session import get_engine, get_session_factory
 from app.domain.interfaces import ProjectRepository
+from app.domain.observability_summary import ObservabilityRunSnapshot, build_observability_summary
 from app.domain.scaffold import (
     build_analysis_output,
     build_output_asset_summary,
@@ -37,6 +38,7 @@ from app.schemas import (
     CreateProjectRequest,
     CreateRenderRunRequest,
     MoneyUsage,
+    ObservabilitySummaryResponse,
     OutputAssetSummary,
     ProjectDetail,
     ProjectDetailResponse,
@@ -761,3 +763,55 @@ class SqlProjectRepository(ProjectRepository):
                 for run in runs
             ]
             return ProjectHistoryResponse(items=items)
+
+    def get_observability_summary(self) -> ObservabilitySummaryResponse:
+        with self._session_factory() as session:
+            projects = list(session.execute(select(ProjectRecord)).scalars())
+            analysis_runs = list(session.execute(select(AnalysisRunRecord)).scalars())
+            workflow_drafts = list(session.execute(select(WorkflowDraftRecord)).scalars())
+            render_runs = list(session.execute(select(RenderRunRecord)).scalars())
+            output_assets = list(session.execute(select(OutputAssetRecord)).scalars())
+            project_titles = {project.id: project.title for project in projects}
+
+            run_snapshots = [
+                ObservabilityRunSnapshot(
+                    id=run.id,
+                    project_id=run.project_id,
+                    project_title=project_titles.get(run.project_id, run.project_id),
+                    run_type="analysis",
+                    status=run.status,
+                    capability=run.capability,
+                    provider=run.provider,
+                    trace_id=run.trace_id,
+                    usage=MoneyUsage(**(run.usage_json or {})),
+                    created_at=to_iso_datetime(run.created_at) or "",
+                    completed_at=to_iso_datetime(run.completed_at),
+                    error_message=run.error_message,
+                )
+                for run in analysis_runs
+            ]
+            run_snapshots.extend(
+                ObservabilityRunSnapshot(
+                    id=run.id,
+                    project_id=run.project_id,
+                    project_title=project_titles.get(run.project_id, run.project_id),
+                    run_type="render",
+                    status=run.status,
+                    capability="render",
+                    provider=run.provider,
+                    trace_id=run.trace_id,
+                    usage=MoneyUsage(**(run.usage_json or {})),
+                    created_at=to_iso_datetime(run.created_at) or "",
+                    completed_at=to_iso_datetime(run.completed_at),
+                    error_message=run.error_message,
+                )
+                for run in render_runs
+            )
+
+            return build_observability_summary(
+                projects_total=len(projects),
+                workflow_drafts_total=len(workflow_drafts),
+                result_assets_total=len(output_assets),
+                runs=run_snapshots,
+                step_snapshot_evidence="services/api/app/domain/sql_repository.py",
+            )

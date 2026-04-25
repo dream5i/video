@@ -105,6 +105,72 @@ class ProjectHistoryResponse(CamelModel):
     items: list[ProjectHistoryItem]
 
 
+class RunStatusCount(CamelModel):
+    status: Literal["queued", "running", "succeeded", "failed"]
+    count: int
+
+
+class MainChainHealthSummary(CamelModel):
+    projects_total: int
+    analysis_runs_total: int
+    analysis_success_rate: float | None = None
+    workflow_drafts_total: int
+    render_runs_total: int
+    render_success_rate: float | None = None
+    result_assets_total: int
+    run_status_counts: list[RunStatusCount]
+
+
+class AsyncTaskHealthSummary(CamelModel):
+    queued_runs: int
+    running_runs: int
+    active_runs: int
+    stuck_runs: int
+    latest_run_updated_at: str | None = None
+
+
+class ProviderHealthSummary(CamelModel):
+    provider: str
+    capability: Literal["analysis", "transcript", "ocr", "render", "tts"]
+    total_runs: int
+    succeeded_runs: int
+    failed_runs: int
+    average_latency_ms: float | None = None
+    estimated_cost_usd: float | None = None
+    last_event_at: str | None = None
+
+
+class ObservabilityFailureItem(CamelModel):
+    project_id: str
+    project_title: str
+    run_id: str
+    run_type: Literal["analysis", "render"]
+    provider: str
+    status: Literal["failed"]
+    trace_id: str
+    error_code: str
+    error_message: str | None = None
+    updated_at: str
+
+
+class ObservabilitySignal(CamelModel):
+    id: str
+    label: str
+    status: Literal["ok", "partial", "missing", "attention"]
+    detail: str
+    evidence: str | None = None
+
+
+class ObservabilitySummaryResponse(CamelModel):
+    ok: bool = True
+    generated_at: str
+    main_chain: MainChainHealthSummary
+    async_tasks: AsyncTaskHealthSummary
+    providers: list[ProviderHealthSummary]
+    recent_failures: list[ObservabilityFailureItem]
+    signals: list[ObservabilitySignal]
+
+
 class AnalysisRunSummary(CamelModel):
     id: str
     project_id: str

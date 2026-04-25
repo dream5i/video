@@ -320,3 +320,20 @@ class ApiMainFlowIntegrationTest(unittest.TestCase):
         self.assertEqual(history_status, 422)
         self.assertEqual(history_payload["detail"]["errorCode"], "validation_error")
         self.assertEqual(history_payload["detail"]["validationErrors"][0]["loc"], ["query", "limit"])
+
+    def test_http_api_exposes_observability_summary(self) -> None:
+        status, payload, headers = request_json_response("GET", f"{self.base_url}/api/observability/summary")
+        self.assertEqual(status, 200)
+        normalized_headers = {key.lower(): value for key, value in headers.items()}
+        self.assertIn("x-request-id", normalized_headers)
+        self.assertIn("x-trace-id", normalized_headers)
+
+        self.assertTrue(payload["ok"])
+        self.assertGreaterEqual(payload["mainChain"]["projectsTotal"], 1)
+        self.assertGreaterEqual(payload["mainChain"]["renderRunsTotal"], 1)
+        self.assertIn("activeRuns", payload["asyncTasks"])
+        self.assertGreaterEqual(len(payload["providers"]), 1)
+
+        signals_by_id = {item["id"]: item for item in payload["signals"]}
+        self.assertEqual(signals_by_id["api-trace-headers"]["status"], "ok")
+        self.assertEqual(signals_by_id["external-alerting"]["status"], "missing")

@@ -10,7 +10,7 @@
 
 - `packages/contracts`：共享 contract
 - `packages/workflow-schema`：workflow / low-code graph schema
-- `services/api`：最小 API 编排层，已具备内存仓库和数据库仓库双实现，当前默认走数据库，并已接入 `request_id` / `trace_id` 与结构化错误返回
+- `services/api`：最小 API 编排层，已具备内存仓库和数据库仓库双实现，当前默认走数据库，并已接入 `request_id` / `trace_id`、结构化错误返回与可观测性汇总接口
 - `services/worker`：provider / worker 骨架
 - `apps/web`：面向工作台的 Next.js 页面骨架
 - `tests/integration`：已覆盖数据库主链、HTTP API 主链、结构化错误契约与 migration smoke
@@ -22,6 +22,7 @@
 - `/projects/new`：新建项目入口
 - `/projects/proj_demo`：演示项目工作台
 - `/history`：运行历史
+- `/observability`：内部可观测性面板
 
 ## 当前统一命令入口
 
@@ -76,4 +77,4 @@ docs/
 1. 继续把 persistence implementation 从“可用”推进到“更完整可维护”
 2. 把 API / Worker 的 stub 运行流继续替换成真实任务流
 3. 把第一条浏览器 E2E 扩成更多异常、回退和历史场景
-4. 把已接入的 trace / error 日志继续接到 dashboard、metrics 和 alerting
+4. 把已接入的内部 observability 面板继续升级到外部 metrics、alerting 和 worker/provider trace

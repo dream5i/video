@@ -13,6 +13,7 @@ from app.schemas import (
     AnalysisResultResponse,
     CreateProjectRequest,
     CreateRenderRunRequest,
+    ObservabilitySummaryResponse,
     ProjectDetailResponse,
     ProjectHistoryResponse,
     ProjectResultResponse,
@@ -72,6 +73,11 @@ def _process_render_run_in_background(
 @router.get("/health")
 async def healthcheck() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@router.get("/observability/summary", response_model=ObservabilitySummaryResponse)
+async def get_observability_summary(repository: ProjectRepositoryDependency) -> ObservabilitySummaryResponse:
+    return repository.get_observability_summary()
 
 
 @router.post("/projects", response_model=ProjectDetailResponse)

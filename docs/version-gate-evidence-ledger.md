@@ -107,7 +107,7 @@ Gate C 的意思是：
 | --- | --- | --- | --- | --- |
 | 真实 AI 分析能力 | 未达到 | `services/worker/worker/adapters/openai_analysis.py`、`services/worker/worker/adapters/anthropic_analysis.py` 当前仍返回 `stubbed` | 这是当前最大的产品真实性风险 | 把 analysis stub 替换成真实 provider 调用链 |
 | 真实渲染运行链 | 未达到 | [page.tsx](../apps/web/app/projects/[projectId]/page.tsx) 当前页面仍明确提示“stub 运行” | 现在能演示流程，不能误判成真实生产链路 | 把 render queue / retry / result chain 接成真实流 |
-| 可观测平台接线 | 未达到 | [observability-and-alerting-baseline.md](./observability-and-alerting-baseline.md) 已有基线，但 dashboard / alerting 还未落平台 | 当前仍偏“日志可看”，还不是“告警可用” | 接 dashboard、metrics、alerting |
+| 可观测平台接线 | 部分达到 | `2026-04-25` 已新增 `GET /api/observability/summary`、`/observability` 页面、`ObservabilitySummaryResponse` contract，并由 API integration test 覆盖；参考 [observability-and-alerting-baseline.md](./observability-and-alerting-baseline.md) | 已从“日志可看”推进到“内部仪表盘可看”，但还不是外部告警平台可用 | 继续接外部 metrics / alerting、worker/provider trace 和告警演练 |
 | 恢复与事故演练 | 未达到 | [rollback-runbook.md](./rollback-runbook.md)、[incident-response-and-escalation-matrix.md](./incident-response-and-escalation-matrix.md) 仍停留在文档层 | 现在有预案，还没有真实演练证据 | 做一次 backup/restore drill 和 incident drill |
 | AI 输出验收底线 | 未达到 | [enterprise-alignment-gap-priority-matrix.md](./enterprise-alignment-gap-priority-matrix.md) 已明确这是必补项 | 现在更像“代码可验”，不是“结果可验” | 定义 analysis / workflow / render 的最小 AI 质量验收标准 |
 | 环境晋级与外部上线 | 未达到 | [environment-promotion-model.md](./environment-promotion-model.md) 有文档，但还没有 staging / production 的真实发布节奏 | 现在还在企业级地基期，不在上线准备期 | 等真实 provider、观测和演练补齐后再推进 |
@@ -119,7 +119,7 @@ Gate C 的意思是：
 1. `真实性风险`
    当前主链已经能跑，但 AI 分析和渲染链仍有 stub 成分，不能把“演示可跑”误判成“产品可上线”。
 2. `观测闭环风险`
-   已有 request / trace / 结构化错误和关键日志，但还没有真正的平台告警和 dashboard。
+   已有 request / trace / 结构化错误、关键日志和内部 `/observability` 面板，但还没有真正的外部告警平台和演练证据。
 3. `演练缺口风险`
    现在有回滚和事故响应文档，但没有真实 drill 证据。
 4. `AI 验收缺口风险`
@@ -127,14 +127,15 @@ Gate C 的意思是：
 
 ## 8. 下一步主控优先级
 
-这份证据总表落地后，下一项主控优先级切到：
+可观测性内部接线第一版落地后，下一项主控优先级切到：
 
-`第 4 项：可观测性平台接线`
+`第 5 项：worker / provider trace 与真实任务链路补强`
 
 原因：
 
-- 证据总表已经把“当前为什么还能继续开发、为什么还不能上线”说清楚了
-- 下一步最缺的不是再讲判断，而是把运行闭环真正接到平台
+- 内部仪表盘已经能看见主链健康，但 provider 调用仍有 stub 成分
+- Gate C 最大风险仍是“真实 AI 分析与真实渲染链路没有完全替换”
+- 下一步应优先把真实任务链路和 provider trace 一起往前推，避免只做页面展示而产品真实性不够
 
 ## 9. 更新触发条件
 
