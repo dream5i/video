@@ -1,6 +1,6 @@
 # 全新项目 文档索引
 
-更新日期：2026-04-24
+更新日期：2026-04-25
 状态：Draft v0.1
 
 ## 1. 这份文档解决什么问题
@@ -35,43 +35,48 @@
 7. [boundary-reuse-and-provider-strategy.md](./boundary-reuse-and-provider-strategy.md)
 8. [frontend-shell-reuse-checklist.md](./frontend-shell-reuse-checklist.md)
 9. [schema-and-contract-freeze.md](./schema-and-contract-freeze.md)
+10. [adr/README.md](./adr/README.md)
+11. [adr/ADR-0001-mvp-main-flow-and-scope-freeze.md](./adr/ADR-0001-mvp-main-flow-and-scope-freeze.md)
+12. [adr/ADR-0002-contract-first-layered-async-architecture.md](./adr/ADR-0002-contract-first-layered-async-architecture.md)
+13. [adr/ADR-0003-provider-capability-abstraction.md](./adr/ADR-0003-provider-capability-abstraction.md)
+14. [adr/ADR-0004-main-controller-and-bounded-delegation.md](./adr/ADR-0004-main-controller-and-bounded-delegation.md)
 
 ### Step 3：再看怎么实施
 
-10. [implementation-foundation-plan.md](./implementation-foundation-plan.md)
-11. [implementation-roadmap.md](./implementation-roadmap.md)
-12. [build-governance-and-agent-operating-model.md](./build-governance-and-agent-operating-model.md)
-13. [ownership-and-approval-matrix.md](./ownership-and-approval-matrix.md)
-14. [test-strategy-and-acceptance-matrix.md](./test-strategy-and-acceptance-matrix.md)
-15. [incident-response-and-escalation-matrix.md](./incident-response-and-escalation-matrix.md)
-16. [local-development-runbook.md](./local-development-runbook.md)
-17. [worktree-and-branching-runbook.md](./worktree-and-branching-runbook.md)
-18. [parallel-drill-first-wave.md](./parallel-drill-first-wave.md)
-19. [parallel-and-launch-gates.md](./parallel-and-launch-gates.md)
-20. [repo-ruleset-and-branch-protection-baseline.md](./repo-ruleset-and-branch-protection-baseline.md)
-21. [github-platform-gates-rollout-checklist.md](./github-platform-gates-rollout-checklist.md)
-22. [main-controller-reanchor-prompt.md](./main-controller-reanchor-prompt.md)
+15. [implementation-foundation-plan.md](./implementation-foundation-plan.md)
+16. [implementation-roadmap.md](./implementation-roadmap.md)
+17. [build-governance-and-agent-operating-model.md](./build-governance-and-agent-operating-model.md)
+18. [ownership-and-approval-matrix.md](./ownership-and-approval-matrix.md)
+19. [test-strategy-and-acceptance-matrix.md](./test-strategy-and-acceptance-matrix.md)
+20. [incident-response-and-escalation-matrix.md](./incident-response-and-escalation-matrix.md)
+21. [local-development-runbook.md](./local-development-runbook.md)
+22. [worktree-and-branching-runbook.md](./worktree-and-branching-runbook.md)
+23. [parallel-drill-first-wave.md](./parallel-drill-first-wave.md)
+24. [parallel-and-launch-gates.md](./parallel-and-launch-gates.md)
+25. [repo-ruleset-and-branch-protection-baseline.md](./repo-ruleset-and-branch-protection-baseline.md)
+26. [github-platform-gates-rollout-checklist.md](./github-platform-gates-rollout-checklist.md)
+27. [main-controller-reanchor-prompt.md](./main-controller-reanchor-prompt.md)
 
 ### Step 4：最后看企业与 AI 编程治理
 
-23. [database-persistence-and-migration-plan.md](./database-persistence-and-migration-plan.md)
-24. [data-lifecycle-and-recovery-baseline.md](./data-lifecycle-and-recovery-baseline.md)
-25. [environment-promotion-model.md](./environment-promotion-model.md)
-26. [nfr-and-slo-baseline.md](./nfr-and-slo-baseline.md)
-27. [observability-and-alerting-baseline.md](./observability-and-alerting-baseline.md)
-28. [release-checklist.md](./release-checklist.md)
-29. [rollback-runbook.md](./rollback-runbook.md)
-30. [project-build-readiness-assessment.md](./project-build-readiness-assessment.md)
-31. [enterprise-prebuild-alignment-gap-analysis.md](./enterprise-prebuild-alignment-gap-analysis.md)
-32. [enterprise-alignment-gap-priority-matrix.md](./enterprise-alignment-gap-priority-matrix.md)
-33. [enterprise-ai-readiness-assessment.md](./enterprise-ai-readiness-assessment.md)
-34. [enterprise-ai-coding-rules.md](./enterprise-ai-coding-rules.md)
-35. [enterprise-ai-coding-operating-playbook.md](./enterprise-ai-coding-operating-playbook.md)
-36. [security/ai-coding-policy-matrix.md](./security/ai-coding-policy-matrix.md)
-37. [security/do-not-feed-and-exclusion-list.md](./security/do-not-feed-and-exclusion-list.md)
-38. [security/threat-model-and-trust-boundaries.md](./security/threat-model-and-trust-boundaries.md)
-39. [security/dependency-and-license-gates.md](./security/dependency-and-license-gates.md)
-40. [review/high-risk-change-checklist.md](./review/high-risk-change-checklist.md)
+28. [database-persistence-and-migration-plan.md](./database-persistence-and-migration-plan.md)
+29. [data-lifecycle-and-recovery-baseline.md](./data-lifecycle-and-recovery-baseline.md)
+30. [environment-promotion-model.md](./environment-promotion-model.md)
+31. [nfr-and-slo-baseline.md](./nfr-and-slo-baseline.md)
+32. [observability-and-alerting-baseline.md](./observability-and-alerting-baseline.md)
+33. [release-checklist.md](./release-checklist.md)
+34. [rollback-runbook.md](./rollback-runbook.md)
+35. [project-build-readiness-assessment.md](./project-build-readiness-assessment.md)
+36. [enterprise-prebuild-alignment-gap-analysis.md](./enterprise-prebuild-alignment-gap-analysis.md)
+37. [enterprise-alignment-gap-priority-matrix.md](./enterprise-alignment-gap-priority-matrix.md)
+38. [enterprise-ai-readiness-assessment.md](./enterprise-ai-readiness-assessment.md)
+39. [enterprise-ai-coding-rules.md](./enterprise-ai-coding-rules.md)
+40. [enterprise-ai-coding-operating-playbook.md](./enterprise-ai-coding-operating-playbook.md)
+41. [security/ai-coding-policy-matrix.md](./security/ai-coding-policy-matrix.md)
+42. [security/do-not-feed-and-exclusion-list.md](./security/do-not-feed-and-exclusion-list.md)
+43. [security/threat-model-and-trust-boundaries.md](./security/threat-model-and-trust-boundaries.md)
+44. [security/dependency-and-license-gates.md](./security/dependency-and-license-gates.md)
+45. [review/high-risk-change-checklist.md](./review/high-risk-change-checklist.md)
 
 ## 3. Source Of Truth 映射
 
@@ -95,6 +100,12 @@
 
 - 主文档：
   - [enterprise-architecture-spec.md](./enterprise-architecture-spec.md)
+- 重大已接受决策：
+  - [adr/README.md](./adr/README.md)
+  - [adr/ADR-0001-mvp-main-flow-and-scope-freeze.md](./adr/ADR-0001-mvp-main-flow-and-scope-freeze.md)
+  - [adr/ADR-0002-contract-first-layered-async-architecture.md](./adr/ADR-0002-contract-first-layered-async-architecture.md)
+  - [adr/ADR-0003-provider-capability-abstraction.md](./adr/ADR-0003-provider-capability-abstraction.md)
+  - [adr/ADR-0004-main-controller-and-bounded-delegation.md](./adr/ADR-0004-main-controller-and-bounded-delegation.md)
 - 背景方案稿：
   - [technical-architecture-draft.md](./technical-architecture-draft.md)
 - 边界辅助：
@@ -164,6 +175,7 @@
 当前最重要的系统化动作包括：
 
 - 保持这份索引更新
+- 遇到重大方向或边界决策时，先看 [adr/README.md](./adr/README.md)
 - 新增架构或边界变化时补 ADR
 - 修改 source-of-truth 文档时同步相关引用
 
